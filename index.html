@@ -33,9 +33,24 @@
 
     <!-- 抽签 -->
     <section id="panel-draw" class="panel active">
+      <div class="card base-card">
+        <div class="card-title-row">
+          <div class="card-title" style="margin:0">出行基地</div>
+          <button type="button" class="btn btn-ghost btn-sm" id="btn-geo" title="用浏览器定位">📍 定位</button>
+        </div>
+        <div class="base-chips" id="base-chips"></div>
+        <div class="row exclude-row" style="border-top:none;padding-top:0.5rem;margin-top:0.35rem">
+          <label class="toggle">
+            <input type="checkbox" id="use-gps-origin" />
+            距离与导航以「当前定位」为起点
+          </label>
+        </div>
+        <p class="hint-text" id="base-hint">市内 / 省内 / 隔壁省 / 行车距离均相对基地计算；可点定位自动选最近城市。</p>
+      </div>
+
       <div class="presets" id="presets">
-        <button type="button" class="preset-chip" data-preset="weekend-budget">🎒 深圳周末穷游</button>
-        <button type="button" class="preset-chip" data-preset="province-short">🚗 广东短途</button>
+        <button type="button" class="preset-chip" data-preset="weekend-budget">🎒 市内周末穷游</button>
+        <button type="button" class="preset-chip" data-preset="province-short">🚗 省内短途</button>
         <button type="button" class="preset-chip" data-preset="nearby-500">🧭 隔壁省约500km车程</button>
         <button type="button" class="preset-chip" data-preset="national-long">✈️ 国内长假</button>
       </div>
@@ -119,7 +134,7 @@
           <p class="hint-text">春夏秋冬按多月份匹配；无月份标注的地点全年可用</p>
         </details>
 
-        <div class="card-title" style="margin-top:1rem">估算行车距离（距深圳）</div>
+        <div class="card-title" style="margin-top:1rem">估算行车距离（相对基地）</div>
         <div class="distance-filter" id="distance-filter">
           <div class="seg" id="seg-distance">
             <button type="button" class="seg-btn active" data-value="0">不限</button>
@@ -135,7 +150,7 @@
             </div>
           </div>
         </div>
-        <p class="hint-text">按常见高速路径的<strong>估算行车距离</strong>（非实时路况/导航）；可点快捷值或自己填公里数</p>
+        <p class="hint-text">相对当前基地/定位的<strong>估算行车距离</strong>（非实时路况）；可点快捷值或自填公里数</p>
 
         <div class="row exclude-row">
           <label class="toggle">
@@ -232,7 +247,7 @@
                 <a class="map-link map-link-dim" id="map-amap" target="_blank" rel="noopener noreferrer">高德</a>
                 <a class="map-link map-link-dim" id="map-google" target="_blank" rel="noopener noreferrer">Google</a>
               </div>
-              <p class="hint-text" id="map-nav-hint" style="margin-top:0.5rem;margin-bottom:0">默认从深圳中心规划驾车；车机可打开链接或搜索同名终点。</p>
+              <p class="hint-text" id="map-nav-hint" style="margin-top:0.5rem;margin-bottom:0">驾车导航起点为当前基地或定位；车机可打开链接或搜索同名终点。</p>
             </div>
           </div>
         </div>
@@ -410,7 +425,7 @@
       <div class="card">
         <div class="card-title">关于</div>
         <p class="hint-text">
-          纯前端单页，无账号无后端。内置示例以深圳为市内、广东为省内，并含隔壁省（桂湘赣闽等），可改
+          纯前端单页，无账号无后端。可切换出行基地城市；市内/省内/隔壁省随基地变化。可改
           <code>data.js</code> 或在「添加」里自定义。
         </p>
       </div>

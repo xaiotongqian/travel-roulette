@@ -1,20 +1,155 @@
 /**
- * 内置地点库 — 默认以「深圳」为市内，广东为省内，隔壁省含桂湘赣闽等。
- * 路径建议（route）默认按自驾语境撰写（出城/车程/停车）。
- *
- * 字段：id/name/scope/region/tags/budget/duration/months/vibe/weight
- *   purpose      出行目的：relax|culture|outdoor|food
- *   lat, lng       大致坐标（用于百度驾车导航链接）
- *   distanceKm     直线距离（参考）
- *   driveKm        相对深圳估算行车距离（km）
- *   intro/food/sights/culture/route/tips
- *
- * scope: city | province | nearby | national
+ * 出行抽签数据 — 基地城市可选（bases），地点相对基地动态计算范围与行车距离。
+ * 广东省内特色点已扩充；市内/隔壁省适量增加。
  */
 window.TRAVEL_DATA = {
   homeCity: "深圳",
   homeProvince: "广东",
-  homeCenter: { lat: 22.5431, lng: 114.0579, label: "深圳市民中心附近" },
+  homeCenter: { lat: 22.5431, lng: 114.0579, label: "深圳" },
+  bases: [
+  {
+    "id": "sz",
+    "name": "深圳",
+    "lat": 22.5431,
+    "lng": 114.0579,
+    "province": "广东",
+    "neighbors": [
+      "广西",
+      "湖南",
+      "江西",
+      "福建",
+      "香港",
+      "澳门"
+    ]
+  },
+  {
+    "id": "gz",
+    "name": "广州",
+    "lat": 23.1291,
+    "lng": 113.2644,
+    "province": "广东",
+    "neighbors": [
+      "广西",
+      "湖南",
+      "江西",
+      "福建",
+      "香港",
+      "澳门"
+    ]
+  },
+  {
+    "id": "zh",
+    "name": "珠海",
+    "lat": 22.2707,
+    "lng": 113.5767,
+    "province": "广东",
+    "neighbors": [
+      "广西",
+      "湖南",
+      "江西",
+      "福建",
+      "香港",
+      "澳门"
+    ]
+  },
+  {
+    "id": "sh",
+    "name": "上海",
+    "lat": 31.2304,
+    "lng": 121.4737,
+    "province": "上海",
+    "neighbors": [
+      "江苏",
+      "浙江",
+      "安徽"
+    ]
+  },
+  {
+    "id": "bj",
+    "name": "北京",
+    "lat": 39.9042,
+    "lng": 116.4074,
+    "province": "北京",
+    "neighbors": [
+      "天津",
+      "河北"
+    ]
+  },
+  {
+    "id": "hz",
+    "name": "杭州",
+    "lat": 30.2741,
+    "lng": 120.1551,
+    "province": "浙江",
+    "neighbors": [
+      "江苏",
+      "上海",
+      "安徽",
+      "江西",
+      "福建"
+    ]
+  },
+  {
+    "id": "cd",
+    "name": "成都",
+    "lat": 30.5728,
+    "lng": 104.0668,
+    "province": "四川",
+    "neighbors": [
+      "重庆",
+      "云南",
+      "贵州",
+      "陕西",
+      "甘肃",
+      "青海",
+      "西藏"
+    ]
+  },
+  {
+    "id": "nj",
+    "name": "南京",
+    "lat": 32.0603,
+    "lng": 118.7969,
+    "province": "江苏",
+    "neighbors": [
+      "安徽",
+      "浙江",
+      "上海",
+      "山东"
+    ]
+  },
+  {
+    "id": "wh",
+    "name": "武汉",
+    "lat": 30.5928,
+    "lng": 114.3055,
+    "province": "湖北",
+    "neighbors": [
+      "湖南",
+      "河南",
+      "安徽",
+      "江西",
+      "重庆",
+      "陕西"
+    ]
+  },
+  {
+    "id": "xa",
+    "name": "西安",
+    "lat": 34.3416,
+    "lng": 108.9398,
+    "province": "陕西",
+    "neighbors": [
+      "四川",
+      "甘肃",
+      "宁夏",
+      "山西",
+      "河南",
+      "湖北",
+      "重庆"
+    ]
+  }
+],
   places: [
   {
     "id": "sz-bay",
@@ -63,7 +198,10 @@ window.TRAVEL_DATA = {
     "purpose": [
       "relax",
       "outdoor"
-    ]
+    ],
+    "city": "深圳",
+    "province": "广东",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "sz-oct",
@@ -112,7 +250,10 @@ window.TRAVEL_DATA = {
     "purpose": [
       "relax",
       "culture"
-    ]
+    ],
+    "city": "深圳",
+    "province": "广东",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "sz-dameisha",
@@ -168,7 +309,10 @@ window.TRAVEL_DATA = {
     "purpose": [
       "relax",
       "outdoor"
-    ]
+    ],
+    "city": "深圳",
+    "province": "广东",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "sz-dapeng",
@@ -225,7 +369,10 @@ window.TRAVEL_DATA = {
       "relax",
       "outdoor",
       "food"
-    ]
+    ],
+    "city": "深圳",
+    "province": "广东",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "sz-nantou",
@@ -273,7 +420,10 @@ window.TRAVEL_DATA = {
     "purpose": [
       "culture",
       "relax"
-    ]
+    ],
+    "city": "深圳",
+    "province": "广东",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "sz-lotus",
@@ -319,7 +469,10 @@ window.TRAVEL_DATA = {
     "purpose": [
       "relax",
       "outdoor"
-    ]
+    ],
+    "city": "深圳",
+    "province": "广东",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "sz-dongmen",
@@ -367,7 +520,10 @@ window.TRAVEL_DATA = {
     "purpose": [
       "food",
       "relax"
-    ]
+    ],
+    "city": "深圳",
+    "province": "广东",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "sz-xichong",
@@ -422,7 +578,10 @@ window.TRAVEL_DATA = {
     "purpose": [
       "outdoor",
       "relax"
-    ]
+    ],
+    "city": "深圳",
+    "province": "广东",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "sz-gankeng",
@@ -471,7 +630,10 @@ window.TRAVEL_DATA = {
       "culture",
       "food",
       "relax"
-    ]
+    ],
+    "city": "深圳",
+    "province": "广东",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "sz-zhongying",
@@ -519,7 +681,10 @@ window.TRAVEL_DATA = {
     "purpose": [
       "culture",
       "relax"
-    ]
+    ],
+    "city": "深圳",
+    "province": "广东",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "sz-talent",
@@ -567,7 +732,10 @@ window.TRAVEL_DATA = {
     "purpose": [
       "relax",
       "outdoor"
-    ]
+    ],
+    "city": "深圳",
+    "province": "广东",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "sz-fairy",
@@ -622,7 +790,10 @@ window.TRAVEL_DATA = {
       "culture",
       "outdoor",
       "relax"
-    ]
+    ],
+    "city": "深圳",
+    "province": "广东",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "gd-gz-pearl",
@@ -679,7 +850,10 @@ window.TRAVEL_DATA = {
       "food",
       "relax",
       "culture"
-    ]
+    ],
+    "city": "广州",
+    "province": "广东",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "gd-zh-lovers",
@@ -728,7 +902,10 @@ window.TRAVEL_DATA = {
       "relax",
       "outdoor",
       "food"
-    ]
+    ],
+    "city": "珠海",
+    "province": "广东",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "gd-hz-shuangyue",
@@ -783,7 +960,10 @@ window.TRAVEL_DATA = {
       "relax",
       "outdoor",
       "food"
-    ]
+    ],
+    "city": "惠州",
+    "province": "广东",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "gd-st-nanao",
@@ -838,7 +1018,10 @@ window.TRAVEL_DATA = {
       "outdoor",
       "food",
       "relax"
-    ]
+    ],
+    "city": "汕头",
+    "province": "广东",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "gd-sg-danxia",
@@ -892,7 +1075,10 @@ window.TRAVEL_DATA = {
     "purpose": [
       "outdoor",
       "culture"
-    ]
+    ],
+    "city": "韶关",
+    "province": "广东",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "gd-qy-lianzhou",
@@ -947,7 +1133,10 @@ window.TRAVEL_DATA = {
       "outdoor",
       "culture",
       "relax"
-    ]
+    ],
+    "city": "清远",
+    "province": "广东",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "gd-fs-lingnan",
@@ -996,7 +1185,10 @@ window.TRAVEL_DATA = {
     "purpose": [
       "culture",
       "food"
-    ]
+    ],
+    "city": "佛山",
+    "province": "广东",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "gd-jm-kaiping",
@@ -1049,7 +1241,10 @@ window.TRAVEL_DATA = {
     "purpose": [
       "culture",
       "relax"
-    ]
+    ],
+    "city": "江门",
+    "province": "广东",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "gd-yj-zhapo",
@@ -1105,7 +1300,10 @@ window.TRAVEL_DATA = {
       "outdoor",
       "food",
       "relax"
-    ]
+    ],
+    "city": "阳江",
+    "province": "广东",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "gd-cz-old",
@@ -1154,7 +1352,10 @@ window.TRAVEL_DATA = {
       "food",
       "culture",
       "relax"
-    ]
+    ],
+    "city": "潮州",
+    "province": "广东",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "gd-mz-hakka",
@@ -1209,7 +1410,10 @@ window.TRAVEL_DATA = {
     "purpose": [
       "culture",
       "food"
-    ]
+    ],
+    "city": "梅州",
+    "province": "广东",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "gd-hy-wanlv",
@@ -1262,7 +1466,10 @@ window.TRAVEL_DATA = {
     "purpose": [
       "outdoor",
       "relax"
-    ]
+    ],
+    "city": "河源",
+    "province": "广东",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "gd-zq-dinghu",
@@ -1317,7 +1524,10 @@ window.TRAVEL_DATA = {
       "outdoor",
       "culture",
       "relax"
-    ]
+    ],
+    "city": "肇庆",
+    "province": "广东",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "nb-gl-yangshuo",
@@ -1372,7 +1582,10 @@ window.TRAVEL_DATA = {
       "outdoor",
       "relax",
       "food"
-    ]
+    ],
+    "city": "桂林",
+    "province": "广西",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "nb-bh-yintan",
@@ -1428,7 +1641,10 @@ window.TRAVEL_DATA = {
       "outdoor",
       "food",
       "relax"
-    ]
+    ],
+    "city": "北海",
+    "province": "广西",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "nb-nn-qingxiu",
@@ -1476,7 +1692,10 @@ window.TRAVEL_DATA = {
     "purpose": [
       "relax",
       "outdoor"
-    ]
+    ],
+    "city": "南宁",
+    "province": "广西",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "nb-cs-yuelu",
@@ -1532,7 +1751,10 @@ window.TRAVEL_DATA = {
       "food",
       "culture",
       "relax"
-    ]
+    ],
+    "city": "长沙",
+    "province": "湖南",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "nb-zj-zhangjiajie",
@@ -1585,7 +1807,10 @@ window.TRAVEL_DATA = {
     "purpose": [
       "outdoor",
       "culture"
-    ]
+    ],
+    "city": "张家界",
+    "province": "湖南",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "nb-fh-phoenix",
@@ -1641,7 +1866,10 @@ window.TRAVEL_DATA = {
       "culture",
       "relax",
       "food"
-    ]
+    ],
+    "city": "湘西",
+    "province": "湖南",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "nb-xm-gulang",
@@ -1696,7 +1924,10 @@ window.TRAVEL_DATA = {
       "relax",
       "culture",
       "food"
-    ]
+    ],
+    "city": "厦门",
+    "province": "福建",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "nb-wy-wuyi",
@@ -1750,7 +1981,10 @@ window.TRAVEL_DATA = {
       "culture",
       "outdoor",
       "food"
-    ]
+    ],
+    "city": "武夷",
+    "province": "福建",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "nb-nc-tengwang",
@@ -1798,7 +2032,10 @@ window.TRAVEL_DATA = {
     "purpose": [
       "culture",
       "relax"
-    ]
+    ],
+    "city": "南昌",
+    "province": "江西",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "nb-wyuan",
@@ -1850,7 +2087,10 @@ window.TRAVEL_DATA = {
       "culture",
       "relax",
       "outdoor"
-    ]
+    ],
+    "city": "上饶",
+    "province": "江西",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "nb-jdz",
@@ -1897,7 +2137,10 @@ window.TRAVEL_DATA = {
     "purpose": [
       "culture",
       "relax"
-    ]
+    ],
+    "city": "景德镇",
+    "province": "江西",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "nb-longhu",
@@ -1951,7 +2194,10 @@ window.TRAVEL_DATA = {
     "purpose": [
       "outdoor",
       "culture"
-    ]
+    ],
+    "city": "鹰潭",
+    "province": "江西",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "nb-gz-ganzhou",
@@ -1998,7 +2244,10 @@ window.TRAVEL_DATA = {
     "purpose": [
       "culture",
       "food"
-    ]
+    ],
+    "city": "赣州",
+    "province": "江西",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "nb-hn-chenzhou",
@@ -2050,7 +2299,10 @@ window.TRAVEL_DATA = {
     "purpose": [
       "outdoor",
       "relax"
-    ]
+    ],
+    "city": "郴州",
+    "province": "湖南",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "nb-fj-zhangzhou",
@@ -2105,7 +2357,10 @@ window.TRAVEL_DATA = {
       "outdoor",
       "relax",
       "food"
-    ]
+    ],
+    "city": "漳州",
+    "province": "福建",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "nb-gx-huangyao",
@@ -2159,7 +2414,10 @@ window.TRAVEL_DATA = {
       "culture",
       "relax",
       "food"
-    ]
+    ],
+    "city": "贺州",
+    "province": "广西",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "nat-bj",
@@ -2212,7 +2470,10 @@ window.TRAVEL_DATA = {
     "driveKm": 2200,
     "purpose": [
       "culture"
-    ]
+    ],
+    "city": "北京",
+    "province": "北京",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "nat-cd",
@@ -2262,7 +2523,10 @@ window.TRAVEL_DATA = {
       "food",
       "relax",
       "outdoor"
-    ]
+    ],
+    "city": "成都",
+    "province": "四川",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "nat-xa",
@@ -2315,7 +2579,10 @@ window.TRAVEL_DATA = {
     "purpose": [
       "culture",
       "food"
-    ]
+    ],
+    "city": "西安",
+    "province": "陕西",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "nat-lj",
@@ -2369,7 +2636,10 @@ window.TRAVEL_DATA = {
     "purpose": [
       "relax",
       "culture"
-    ]
+    ],
+    "city": "丽江",
+    "province": "云南",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "nat-sanya",
@@ -2424,7 +2694,10 @@ window.TRAVEL_DATA = {
       "relax",
       "outdoor",
       "food"
-    ]
+    ],
+    "city": "三亚",
+    "province": "海南",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "nat-cq",
@@ -2474,7 +2747,10 @@ window.TRAVEL_DATA = {
       "food",
       "relax",
       "culture"
-    ]
+    ],
+    "city": "重庆",
+    "province": "重庆",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "nat-hz",
@@ -2531,7 +2807,10 @@ window.TRAVEL_DATA = {
       "relax",
       "outdoor",
       "culture"
-    ]
+    ],
+    "city": "杭州",
+    "province": "浙江",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "nat-sh",
@@ -2581,7 +2860,10 @@ window.TRAVEL_DATA = {
       "relax",
       "culture",
       "food"
-    ]
+    ],
+    "city": "上海",
+    "province": "上海",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
   },
   {
     "id": "nat-jiuzhai",
@@ -2630,6 +2912,2710 @@ window.TRAVEL_DATA = {
     "purpose": [
       "outdoor",
       "relax"
+    ],
+    "city": "九寨",
+    "province": "四川",
+    "driveTip": "车机可用百度地图设终点；优先官方停车场，勿占应急车道。"
+  },
+  {
+    "id": "sz-oct-happy",
+    "name": "深圳·欢乐谷",
+    "scope": "city",
+    "city": "深圳",
+    "province": "广东",
+    "region": "深圳南山",
+    "tags": [
+      "乐园",
+      "亲子",
+      "刺激"
+    ],
+    "purpose": [
+      "relax",
+      "outdoor"
+    ],
+    "budget": [
+      "mid",
+      "luxury"
+    ],
+    "duration": [
+      "day",
+      "weekend"
+    ],
+    "months": [],
+    "vibe": "刺激项目扎堆，适合想出汗的一天。",
+    "weight": 1,
+    "lat": 22.54,
+    "lng": 113.985,
+    "distanceKm": 7.5,
+    "driveKm": 10,
+    "intro": "华侨城大型乐园，过山车与夜间灯光，亲子与青年都合适。",
+    "food": [
+      "园区简餐",
+      "华侨城商圈"
+    ],
+    "sights": [
+      "过山车集群",
+      "主题街区",
+      "夜场灯光"
+    ],
+    "culture": [
+      "特区主题乐园代表。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "优先欢乐谷停车场，周末建议早到。",
+    "tips": [
+      "优先欢乐谷停车场，周末建议早到。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "sz-yangmeikeng",
+    "name": "深圳·杨梅坑",
+    "scope": "city",
+    "city": "深圳",
+    "province": "广东",
+    "region": "深圳大鹏",
+    "tags": [
+      "骑行",
+      "海边",
+      "网红"
+    ],
+    "purpose": [
+      "outdoor",
+      "relax"
+    ],
+    "budget": [
+      "budget",
+      "mid"
+    ],
+    "duration": [
+      "day",
+      "weekend"
+    ],
+    "months": [
+      3,
+      4,
+      5,
+      9,
+      10,
+      11
+    ],
+    "vibe": "骑行看海的大鹏经典线。",
+    "weight": 1.1,
+    "lat": 22.55,
+    "lng": 114.56,
+    "distanceKm": 51.6,
+    "driveKm": 75,
+    "intro": "大鹏半岛海岸骑行热门，海风与湾景是卖点。",
+    "food": [
+      "海边简餐",
+      "回较场尾吃海鲜"
+    ],
+    "sights": [
+      "骑行绿道",
+      "湾景",
+      "鹿嘴"
+    ],
+    "culture": [
+      "深圳户外骑行名片。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "路边停车有限，避开节假日正午。",
+    "tips": [
+      "路边停车有限，避开节假日正午。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "sz-songshan",
+    "name": "深圳·松山湖可顺路东莞线",
+    "scope": "city",
+    "city": "深圳",
+    "province": "广东",
+    "region": "深圳龙岗",
+    "tags": [
+      "周末",
+      "人文",
+      "轻松"
+    ],
+    "purpose": [
+      "relax",
+      "culture"
+    ],
+    "budget": [
+      "budget",
+      "mid"
+    ],
+    "duration": [
+      "day"
+    ],
+    "months": [],
+    "vibe": "本地轻逛备选，也可作东莞松山湖跳板。",
+    "weight": 0.7,
+    "lat": 22.7,
+    "lng": 114.25,
+    "distanceKm": 26.3,
+    "driveKm": 40,
+    "intro": "龙岗方向轻松半日，适合不想跑大鹏的日子。",
+    "food": [
+      "本地粤菜茶档"
+    ],
+    "sights": [
+      "城市公园",
+      "文创小店"
+    ],
+    "culture": [
+      "东部城区日常休闲。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "商场停车更方便。",
+    "tips": [
+      "商场停车更方便。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "sz-shenzhenbay-sports",
+    "name": "深圳湾运动公园",
+    "scope": "city",
+    "city": "深圳",
+    "province": "广东",
+    "region": "深圳南山",
+    "tags": [
+      "运动",
+      "夜跑",
+      "海边"
+    ],
+    "purpose": [
+      "outdoor",
+      "relax"
+    ],
+    "budget": [
+      "budget"
+    ],
+    "duration": [
+      "day",
+      "weekend"
+    ],
+    "months": [],
+    "vibe": "夜跑与海风，都市运动场。",
+    "weight": 1,
+    "lat": 22.515,
+    "lng": 113.995,
+    "distanceKm": 7.2,
+    "driveKm": 10,
+    "intro": "运动场馆+滨海步道，早晚氛围最好。",
+    "food": [
+      "后海餐饮"
+    ],
+    "sights": [
+      "体育场外观",
+      "滨海跑道"
+    ],
+    "culture": [
+      "科技城的运动日常。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "赛事期间管制，可停后海商场。",
+    "tips": [
+      "赛事期间管制，可停后海商场。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "sz-jiaochangwei-night",
+    "name": "较场尾夜色民宿区",
+    "scope": "city",
+    "city": "深圳",
+    "province": "广东",
+    "region": "深圳大鹏",
+    "tags": [
+      "民宿",
+      "夜色",
+      "海边"
+    ],
+    "purpose": [
+      "relax",
+      "food"
+    ],
+    "budget": [
+      "mid",
+      "luxury"
+    ],
+    "duration": [
+      "weekend"
+    ],
+    "months": [],
+    "vibe": "住一晚听海，夜宵配海风。",
+    "weight": 1,
+    "lat": 22.592,
+    "lng": 114.475,
+    "distanceKm": 43.2,
+    "driveKm": 65,
+    "intro": "民宿与酒吧聚集，适合周末过夜而不是当天来回。",
+    "food": [
+      "海鲜排档",
+      "民宿餐"
+    ],
+    "sights": [
+      "沙滩夜色",
+      "所城可白天串"
+    ],
+    "culture": [
+      "大鹏微度假核心。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "旺季提前订含车位民宿。",
+    "tips": [
+      "旺季提前订含车位民宿。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "sz-dafen",
+    "name": "深圳·大芬油画村",
+    "scope": "city",
+    "city": "深圳",
+    "province": "广东",
+    "region": "深圳龙岗",
+    "tags": [
+      "艺术",
+      "拍照",
+      "市井"
+    ],
+    "purpose": [
+      "culture",
+      "relax"
+    ],
+    "budget": [
+      "budget",
+      "mid"
+    ],
+    "duration": [
+      "day"
+    ],
+    "months": [],
+    "vibe": "油画味的市井街巷，半日刚好。",
+    "weight": 0.9,
+    "lat": 22.69,
+    "lng": 114.15,
+    "distanceKm": 18.9,
+    "driveKm": 25,
+    "intro": "油画复制与文创小店，适合拍照闲逛。",
+    "food": [
+      "村内简餐",
+      "甘坑可顺路"
+    ],
+    "sights": [
+      "油画街",
+      "画廊"
+    ],
+    "culture": [
+      "特区艺术产业村样本。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "村口停车场或路边，周末略堵。",
+    "tips": [
+      "村口停车场或路边，周末略堵。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "gd-gz-baiyun",
+    "name": "广州·白云山",
+    "scope": "province",
+    "city": "广州",
+    "province": "广东",
+    "region": "广州",
+    "tags": [
+      "登山",
+      "户外",
+      "休闲"
+    ],
+    "purpose": [
+      "outdoor",
+      "relax"
+    ],
+    "budget": [
+      "budget",
+      "mid"
+    ],
+    "duration": [
+      "day",
+      "weekend"
+    ],
+    "months": [],
+    "vibe": "登高望远，广州人的周末肺。",
+    "weight": 1,
+    "lat": 23.17,
+    "lng": 113.29,
+    "distanceKm": 105.1,
+    "driveKm": 135,
+    "intro": "广州城中山，索道与登山步道完善。",
+    "food": [
+      "山上简餐",
+      "山下粤菜茶市"
+    ],
+    "sights": [
+      "摩星岭",
+      "明珠楼"
+    ],
+    "culture": [
+      "羊城绿肺。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "山下停车场周末易满，建议早到。",
+    "tips": [
+      "山下停车场周末易满，建议早到。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "gd-gz-chimelong",
+    "name": "广州·长隆",
+    "scope": "province",
+    "city": "广州",
+    "province": "广东",
+    "region": "广州",
+    "tags": [
+      "乐园",
+      "亲子",
+      "度假"
+    ],
+    "purpose": [
+      "relax",
+      "outdoor"
+    ],
+    "budget": [
+      "mid",
+      "luxury"
+    ],
+    "duration": [
+      "day",
+      "weekend",
+      "long"
+    ],
+    "months": [],
+    "vibe": "动物园+乐园，亲子长假友好。",
+    "weight": 1,
+    "lat": 22.998,
+    "lng": 113.33,
+    "distanceKm": 90.2,
+    "driveKm": 115,
+    "intro": "长隆旅游度假区，项目多需排一日以上。",
+    "food": [
+      "园区餐",
+      "番禺周边餐饮"
+    ],
+    "sights": [
+      "长隆欢乐世界",
+      "香江野生动物世界"
+    ],
+    "culture": [
+      "华南亲子度假标杆。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "官方停车场，节假日极堵请错峰。",
+    "tips": [
+      "官方停车场，节假日极堵请错峰。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "gd-gz-shamian",
+    "name": "广州·沙面",
+    "scope": "province",
+    "city": "广州",
+    "province": "广东",
+    "region": "广州",
+    "tags": [
+      "历史",
+      "散步",
+      "拍照"
+    ],
+    "purpose": [
+      "culture",
+      "relax"
+    ],
+    "budget": [
+      "budget",
+      "mid"
+    ],
+    "duration": [
+      "day",
+      "weekend"
+    ],
+    "months": [],
+    "vibe": "岛上梧桐与殖民建筑，适合慢走。",
+    "weight": 1,
+    "lat": 23.11,
+    "lng": 113.24,
+    "distanceKm": 104.9,
+    "driveKm": 135,
+    "intro": "珠江边的沙面岛，建筑与咖啡馆氛围好。",
+    "food": [
+      "沙面咖啡",
+      "附近早茶"
+    ],
+    "sights": [
+      "沙面大街",
+      "白天鹅外观"
+    ],
+    "culture": [
+      "近代口岸建筑群。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "岛上停车位少，可停周边酒店/商场。",
+    "tips": [
+      "岛上停车位少，可停周边酒店/商场。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "gd-gz-yongqing",
+    "name": "广州·永庆坊",
+    "scope": "province",
+    "city": "广州",
+    "province": "广东",
+    "region": "广州",
+    "tags": [
+      "街区",
+      "文创",
+      "美食"
+    ],
+    "purpose": [
+      "culture",
+      "food",
+      "relax"
+    ],
+    "budget": [
+      "budget",
+      "mid"
+    ],
+    "duration": [
+      "day",
+      "weekend"
+    ],
+    "months": [],
+    "vibe": "老城新作，逛吃一条街。",
+    "weight": 1,
+    "lat": 23.12,
+    "lng": 113.24,
+    "distanceKm": 105.6,
+    "driveKm": 135,
+    "intro": "荔湾永庆坊，骑楼与新潮店并存。",
+    "food": [
+      "艇仔粥",
+      "双皮奶",
+      "茶点"
+    ],
+    "sights": [
+      "永庆大街",
+      "粤剧艺术博物馆"
+    ],
+    "culture": [
+      "广府旧城更新样本。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "附近商场停车更稳。",
+    "tips": [
+      "附近商场停车更稳。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "gd-gz-chenjia",
+    "name": "广州·陈家祠",
+    "scope": "province",
+    "city": "广州",
+    "province": "广东",
+    "region": "广州",
+    "tags": [
+      "建筑",
+      "非遗",
+      "文化"
+    ],
+    "purpose": [
+      "culture"
+    ],
+    "budget": [
+      "budget",
+      "mid"
+    ],
+    "duration": [
+      "day"
+    ],
+    "months": [],
+    "vibe": "木雕砖雕看花眼，广府工艺巅峰。",
+    "weight": 1,
+    "lat": 23.13,
+    "lng": 113.24,
+    "distanceKm": 106.2,
+    "driveKm": 140,
+    "intro": "陈氏书院，装饰艺术极繁复。",
+    "food": [
+      "附近茶点"
+    ],
+    "sights": [
+      "陈家祠主殿",
+      "工艺展"
+    ],
+    "culture": [
+      "宗族书院与工艺展示。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "有专用停车场，不大，早到。",
+    "tips": [
+      "有专用停车场，不大，早到。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "gd-dg-songshan",
+    "name": "东莞·松山湖",
+    "scope": "province",
+    "city": "东莞",
+    "province": "广东",
+    "region": "东莞",
+    "tags": [
+      "骑行",
+      "湖景",
+      "现代"
+    ],
+    "purpose": [
+      "outdoor",
+      "relax"
+    ],
+    "budget": [
+      "budget",
+      "mid"
+    ],
+    "duration": [
+      "day",
+      "weekend"
+    ],
+    "months": [
+      3,
+      4,
+      5,
+      9,
+      10,
+      11
+    ],
+    "vibe": "环湖骑行，深圳人半日达。",
+    "weight": 1,
+    "lat": 22.92,
+    "lng": 113.88,
+    "distanceKm": 45.7,
+    "driveKm": 60,
+    "intro": "松山湖高新区湖岸绿道，适合骑行散步。",
+    "food": [
+      "松山湖商圈餐饮"
+    ],
+    "sights": [
+      "环湖绿道",
+      "图书馆外观"
+    ],
+    "culture": [
+      "产业新城的休闲面。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "环湖有多个停车场，周末位紧张。",
+    "tips": [
+      "环湖有多个停车场，周末位紧张。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "gd-dg-keyuan",
+    "name": "东莞·可园",
+    "scope": "province",
+    "city": "东莞",
+    "province": "广东",
+    "region": "东莞",
+    "tags": [
+      "园林",
+      "文化",
+      "一日"
+    ],
+    "purpose": [
+      "culture",
+      "relax"
+    ],
+    "budget": [
+      "budget",
+      "mid"
+    ],
+    "duration": [
+      "day"
+    ],
+    "months": [
+      3,
+      4,
+      5,
+      10,
+      11
+    ],
+    "vibe": "广东四大名园之一，小而精。",
+    "weight": 1,
+    "lat": 23.04,
+    "lng": 113.78,
+    "distanceKm": 62.2,
+    "driveKm": 80,
+    "intro": "清代园林，岭南庭院尺度舒适。",
+    "food": [
+      "莞城小吃"
+    ],
+    "sights": [
+      "可园庭院",
+      "书画展"
+    ],
+    "culture": [
+      "岭南园林代表。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "景区停车或周边路边。",
+    "tips": [
+      "景区停车或周边路边。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "gd-zs-cuiheng",
+    "name": "中山·孙中山故居",
+    "scope": "province",
+    "city": "中山",
+    "province": "广东",
+    "region": "中山",
+    "tags": [
+      "历史",
+      "红色",
+      "一日"
+    ],
+    "purpose": [
+      "culture"
+    ],
+    "budget": [
+      "budget",
+      "mid"
+    ],
+    "duration": [
+      "day",
+      "weekend"
+    ],
+    "months": [],
+    "vibe": "翠亨村追忆，半日文化线。",
+    "weight": 1,
+    "lat": 22.45,
+    "lng": 113.53,
+    "distanceKm": 55.2,
+    "driveKm": 70,
+    "intro": "故居纪念馆，了解近代史必来。",
+    "food": [
+      "中山美食",
+      "脆肉鲩"
+    ],
+    "sights": [
+      "故居",
+      "民俗村"
+    ],
+    "culture": [
+      "近代中国关键人物纪念地。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "纪念馆停车场充足。",
+    "tips": [
+      "纪念馆停车场充足。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "gd-zs-qijiang",
+    "name": "中山·岐江公园",
+    "scope": "province",
+    "city": "中山",
+    "province": "广东",
+    "region": "中山",
+    "tags": [
+      "工业遗存",
+      "散步",
+      "设计"
+    ],
+    "purpose": [
+      "culture",
+      "relax",
+      "outdoor"
+    ],
+    "budget": [
+      "budget"
+    ],
+    "duration": [
+      "day"
+    ],
+    "months": [],
+    "vibe": "工业风公园，拍照散步友好。",
+    "weight": 1,
+    "lat": 22.52,
+    "lng": 113.37,
+    "distanceKm": 70.7,
+    "driveKm": 90,
+    "intro": "船厂改造公园，设计感强。",
+    "food": [
+      "石岐美食"
+    ],
+    "sights": [
+      "岐江桥",
+      "铁轨装置"
+    ],
+    "culture": [
+      "工业遗产公共空间。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "公园周边停车。",
+    "tips": [
+      "公园周边停车。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "gd-fs-xinqiao",
+    "name": "佛山·南风古灶",
+    "scope": "province",
+    "city": "佛山",
+    "province": "广东",
+    "region": "佛山",
+    "tags": [
+      "陶艺",
+      "古灶",
+      "文化"
+    ],
+    "purpose": [
+      "culture",
+      "relax"
+    ],
+    "budget": [
+      "budget",
+      "mid"
+    ],
+    "duration": [
+      "day",
+      "weekend"
+    ],
+    "months": [],
+    "vibe": "千年窑火，陶艺体验有趣。",
+    "weight": 1,
+    "lat": 23.0,
+    "lng": 113.08,
+    "distanceKm": 112.4,
+    "driveKm": 145,
+    "intro": "石湾陶瓷与古灶，可做陶。",
+    "food": [
+      "石湾公仔主题小吃",
+      "佛山小吃"
+    ],
+    "sights": [
+      "南风古灶",
+      "公仔街"
+    ],
+    "culture": [
+      "石湾陶瓷文化。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "景区停车场。",
+    "tips": [
+      "景区停车场。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "gd-fs-xiqiao",
+    "name": "佛山·西樵山",
+    "scope": "province",
+    "city": "佛山",
+    "province": "广东",
+    "region": "佛山",
+    "tags": [
+      "登山",
+      "自然",
+      "周末"
+    ],
+    "purpose": [
+      "outdoor",
+      "culture"
+    ],
+    "budget": [
+      "budget",
+      "mid"
+    ],
+    "duration": [
+      "day",
+      "weekend"
+    ],
+    "months": [
+      3,
+      4,
+      5,
+      9,
+      10,
+      11
+    ],
+    "vibe": "佛山名山，轻松登高。",
+    "weight": 1,
+    "lat": 22.93,
+    "lng": 112.97,
+    "distanceKm": 119.6,
+    "driveKm": 155,
+    "intro": "西樵山风景区，索道与步道可选。",
+    "food": [
+      "山脚农家菜"
+    ],
+    "sights": [
+      "黄大仙圣境",
+      "白云洞"
+    ],
+    "culture": [
+      "南粤名山。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "山脚停车场，节假日排队进山。",
+    "tips": [
+      "山脚停车场，节假日排队进山。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "gd-fs-shunde",
+    "name": "佛山·顺德美食一日",
+    "scope": "province",
+    "city": "佛山",
+    "province": "广东",
+    "region": "佛山",
+    "tags": [
+      "美食",
+      "粤菜",
+      "吃喝"
+    ],
+    "purpose": [
+      "food",
+      "relax"
+    ],
+    "budget": [
+      "mid",
+      "luxury"
+    ],
+    "duration": [
+      "day",
+      "weekend"
+    ],
+    "months": [],
+    "vibe": "中国美食名城，冲着吃就值。",
+    "weight": 1,
+    "lat": 22.8,
+    "lng": 113.29,
+    "distanceKm": 83.8,
+    "driveKm": 110,
+    "intro": "大良/容桂吃一圈：双皮奶、鱼生、煲仔。",
+    "food": [
+      "双皮奶",
+      "顺德鱼生",
+      "陈村粉"
+    ],
+    "sights": [
+      "清晖园可顺路",
+      "华盖路食街"
+    ],
+    "culture": [
+      "世界美食之都。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "热门餐厅周边难停，商场车库+步行。",
+    "tips": [
+      "热门餐厅周边难停，商场车库+步行。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "gd-hz-xunliao",
+    "name": "惠州·巽寮湾",
+    "scope": "province",
+    "city": "惠州",
+    "province": "广东",
+    "region": "惠州",
+    "tags": [
+      "海滩",
+      "度假",
+      "海鲜"
+    ],
+    "purpose": [
+      "outdoor",
+      "relax",
+      "food"
+    ],
+    "budget": [
+      "mid",
+      "luxury"
+    ],
+    "duration": [
+      "weekend",
+      "long"
+    ],
+    "months": [
+      4,
+      5,
+      9,
+      10,
+      11
+    ],
+    "vibe": "惠东另一处海边，度假感强。",
+    "weight": 1,
+    "lat": 22.68,
+    "lng": 114.82,
+    "distanceKm": 79.7,
+    "driveKm": 105,
+    "intro": "沙滩与酒店集群，适合住一晚。",
+    "food": [
+      "海鲜排档",
+      "酒店餐"
+    ],
+    "sights": [
+      "沙滩",
+      "海滨栈道"
+    ],
+    "culture": [
+      "珠三角微度假海岸。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "酒店带车位优先；景区公共停车旺季紧张。",
+    "tips": [
+      "酒店带车位优先；景区公共停车旺季紧张。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "gd-hz-westlake",
+    "name": "惠州·西湖",
+    "scope": "province",
+    "city": "惠州",
+    "province": "广东",
+    "region": "惠州",
+    "tags": [
+      "湖景",
+      "城市",
+      "轻松"
+    ],
+    "purpose": [
+      "relax",
+      "culture"
+    ],
+    "budget": [
+      "budget",
+      "mid"
+    ],
+    "duration": [
+      "day",
+      "weekend"
+    ],
+    "months": [],
+    "vibe": "一城山水，夜景也好看。",
+    "weight": 1,
+    "lat": 23.09,
+    "lng": 114.4,
+    "distanceKm": 70.2,
+    "driveKm": 90,
+    "intro": "惠州西湖，苏堤式闲逛，城市友好。",
+    "food": [
+      "东坡肉相关菜",
+      "甜品"
+    ],
+    "sights": [
+      "平湖门",
+      "泗洲塔"
+    ],
+    "culture": [
+      "东坡足迹与岭南湖城。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "西湖周边停车场较多。",
+    "tips": [
+      "西湖周边停车场较多。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "gd-hz-luofu",
+    "name": "惠州·罗浮山",
+    "scope": "province",
+    "city": "惠州",
+    "province": "广东",
+    "region": "惠州",
+    "tags": [
+      "道教",
+      "登山",
+      "周末"
+    ],
+    "purpose": [
+      "outdoor",
+      "culture"
+    ],
+    "budget": [
+      "budget",
+      "mid"
+    ],
+    "duration": [
+      "weekend"
+    ],
+    "months": [
+      3,
+      4,
+      5,
+      9,
+      10
+    ],
+    "vibe": "岭南第一山，道观与山风。",
+    "weight": 1,
+    "lat": 23.28,
+    "lng": 114.02,
+    "distanceKm": 82.0,
+    "driveKm": 105,
+    "intro": "罗浮山风景名胜区，登山敬香。",
+    "food": [
+      "山门农家乐"
+    ],
+    "sights": [
+      "冲虚古观",
+      "飞云顶"
+    ],
+    "culture": [
+      "道教名山。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "山门停车场，周末早到。",
+    "tips": [
+      "山门停车场，周末早到。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "gd-jm-chikan",
+    "name": "江门·赤坎古镇",
+    "scope": "province",
+    "city": "江门",
+    "province": "广东",
+    "region": "江门",
+    "tags": [
+      "古镇",
+      "侨乡",
+      "拍照"
+    ],
+    "purpose": [
+      "culture",
+      "relax",
+      "food"
+    ],
+    "budget": [
+      "budget",
+      "mid"
+    ],
+    "duration": [
+      "day",
+      "weekend"
+    ],
+    "months": [],
+    "vibe": "碉楼之外的侨乡古镇味。",
+    "weight": 1,
+    "lat": 22.3,
+    "lng": 112.55,
+    "distanceKm": 157.3,
+    "driveKm": 205,
+    "intro": "开平赤坎，骑楼与影视取景氛围。",
+    "food": [
+      "侨乡小吃",
+      "猪肉扎"
+    ],
+    "sights": [
+      "骑楼街",
+      "司徒氏灯楼可顺路"
+    ],
+    "culture": [
+      "侨乡文化。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "镇口停车场，巷内勿开入。",
+    "tips": [
+      "镇口停车场，巷内勿开入。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "gd-jm-chuan",
+    "name": "江门·上下川岛",
+    "scope": "province",
+    "city": "江门",
+    "province": "广东",
+    "region": "江门",
+    "tags": [
+      "海岛",
+      "轮渡",
+      "度假"
+    ],
+    "purpose": [
+      "outdoor",
+      "relax",
+      "food"
+    ],
+    "budget": [
+      "mid"
+    ],
+    "duration": [
+      "weekend",
+      "long"
+    ],
+    "months": [
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "vibe": "轮渡上岛，沙滩与海鲜。",
+    "weight": 1,
+    "lat": 21.7,
+    "lng": 112.7,
+    "distanceKm": 168.4,
+    "driveKm": 220,
+    "intro": "台山上下川，需轮渡，适合过夜。",
+    "food": [
+      "岛上海鲜"
+    ],
+    "sights": [
+      "王府洲沙滩",
+      "ektet"
+    ],
+    "culture": [
+      "粤西海岛度假。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "车停台山码头停车场再坐船。",
+    "tips": [
+      "车停台山码头停车场再坐船。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "gd-xin-hui",
+    "name": "江门·新会陈皮村",
+    "scope": "province",
+    "city": "江门",
+    "province": "广东",
+    "region": "江门",
+    "tags": [
+      "陈皮",
+      "美食",
+      "文化"
+    ],
+    "purpose": [
+      "food",
+      "culture"
+    ],
+    "budget": [
+      "budget",
+      "mid"
+    ],
+    "duration": [
+      "day"
+    ],
+    "months": [],
+    "vibe": "陈皮宇宙打卡，买手信。",
+    "weight": 1,
+    "lat": 22.52,
+    "lng": 113.03,
+    "distanceKm": 105.6,
+    "driveKm": 135,
+    "intro": "陈皮主题街区与博物馆式体验。",
+    "food": [
+      "陈皮茶点",
+      "新会特产"
+    ],
+    "sights": [
+      "陈皮村",
+      "会城老街可加"
+    ],
+    "culture": [
+      "新会陈皮地理标志。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "园区停车场。",
+    "tips": [
+      "园区停车场。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "gd-zj-donghai",
+    "name": "湛江·东海岛",
+    "scope": "province",
+    "city": "湛江",
+    "province": "广东",
+    "region": "湛江",
+    "tags": [
+      "海滩",
+      "海鲜",
+      "长途"
+    ],
+    "purpose": [
+      "outdoor",
+      "food",
+      "relax"
+    ],
+    "budget": [
+      "budget",
+      "mid"
+    ],
+    "duration": [
+      "weekend",
+      "long"
+    ],
+    "months": [
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "vibe": "粤西大岛，沙滩绵长。",
+    "weight": 1,
+    "lat": 21.02,
+    "lng": 110.52,
+    "distanceKm": 402.6,
+    "driveKm": 525,
+    "intro": "东海岛龙水岭与海滩，海鲜丰富。",
+    "food": [
+      "湛江海鲜",
+      "鸡饭"
+    ],
+    "sights": [
+      "龙海天沙滩",
+      "火山口公园"
+    ],
+    "culture": [
+      "港城滨海。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "岛上停车较松，注意防晒。",
+    "tips": [
+      "岛上停车较松，注意防晒。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "gd-zj-techeng",
+    "name": "湛江·特呈岛",
+    "scope": "province",
+    "city": "湛江",
+    "province": "广东",
+    "region": "湛江",
+    "tags": [
+      "海岛",
+      "红树林",
+      "轻松"
+    ],
+    "purpose": [
+      "outdoor",
+      "relax"
+    ],
+    "budget": [
+      "mid"
+    ],
+    "duration": [
+      "weekend"
+    ],
+    "months": [
+      4,
+      5,
+      9,
+      10,
+      11
+    ],
+    "vibe": "红树林与小岛慢节奏。",
+    "weight": 1,
+    "lat": 21.18,
+    "lng": 110.45,
+    "distanceKm": 402.0,
+    "driveKm": 525,
+    "intro": "乘船短驳上岛，适合放松两天。",
+    "food": [
+      "海鲜",
+      "椰子"
+    ],
+    "sights": [
+      "红树林栈道",
+      "沙滩"
+    ],
+    "culture": [
+      "海湾生态岛。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "车停码头，上岛用接驳。",
+    "tips": [
+      "车停码头，上岛用接驳。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "gd-mm-fangji",
+    "name": "茂名·放鸡岛",
+    "scope": "province",
+    "city": "茂名",
+    "province": "广东",
+    "region": "茂名",
+    "tags": [
+      "潜水",
+      "海岛",
+      "户外"
+    ],
+    "purpose": [
+      "outdoor",
+      "relax"
+    ],
+    "budget": [
+      "mid",
+      "luxury"
+    ],
+    "duration": [
+      "weekend",
+      "long"
+    ],
+    "months": [
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "vibe": "潜水与海岛项目，夏天热门。",
+    "weight": 1,
+    "lat": 21.4,
+    "lng": 111.25,
+    "distanceKm": 316.2,
+    "driveKm": 410,
+    "intro": "放鸡岛海洋度假，可潜水摩托艇。",
+    "food": [
+      "岛上餐",
+      "茂名小吃"
+    ],
+    "sights": [
+      "潜水区",
+      "环岛"
+    ],
+    "culture": [
+      "粤西海洋娱乐。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "码头停车，船票提前订。",
+    "tips": [
+      "码头停车，船票提前订。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "gd-yj-hailing",
+    "name": "阳江·海陵岛十里银滩",
+    "scope": "province",
+    "city": "阳江",
+    "province": "广东",
+    "region": "阳江",
+    "tags": [
+      "海滩",
+      "度假",
+      "长滩"
+    ],
+    "purpose": [
+      "outdoor",
+      "relax",
+      "food"
+    ],
+    "budget": [
+      "budget",
+      "mid"
+    ],
+    "duration": [
+      "weekend",
+      "long"
+    ],
+    "months": [
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "vibe": "长沙滩散步，闸坡之外的选择。",
+    "weight": 1,
+    "lat": 21.6,
+    "lng": 111.9,
+    "distanceKm": 245.8,
+    "driveKm": 320,
+    "intro": "十里银滩开阔，适合慢跑骑行。",
+    "food": [
+      "海鲜",
+      "阳江豆豉菜"
+    ],
+    "sights": [
+      "银滩",
+      "闸坡可连游"
+    ],
+    "culture": [
+      "南海渔港度假岸。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "滩边停车场，台风季勿前往。",
+    "tips": [
+      "滩边停车场，台风季勿前往。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "gd-qy-huangteng",
+    "name": "清远·黄腾峡漂流",
+    "scope": "province",
+    "city": "清远",
+    "province": "广东",
+    "region": "清远",
+    "tags": [
+      "漂流",
+      "户外",
+      "周末"
+    ],
+    "purpose": [
+      "outdoor"
+    ],
+    "budget": [
+      "mid"
+    ],
+    "duration": [
+      "day",
+      "weekend"
+    ],
+    "months": [
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "vibe": "清远漂流经典，夏天最爽。",
+    "weight": 1,
+    "lat": 23.75,
+    "lng": 113.05,
+    "distanceKm": 169.2,
+    "driveKm": 220,
+    "intro": "漂流项目密集，注意安全与季节。",
+    "food": [
+      "峡谷农家菜"
+    ],
+    "sights": [
+      "漂流段",
+      "玻璃桥视开放"
+    ],
+    "culture": [
+      "清远户外经济代表。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "景区大停车场，周末排队入园。",
+    "tips": [
+      "景区大停车场，周末排队入园。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "gd-qy-gulong",
+    "name": "清远·古龙峡",
+    "scope": "province",
+    "city": "清远",
+    "province": "广东",
+    "region": "清远",
+    "tags": [
+      "漂流",
+      "玻璃桥",
+      "山岳"
+    ],
+    "purpose": [
+      "outdoor",
+      "relax"
+    ],
+    "budget": [
+      "mid"
+    ],
+    "duration": [
+      "weekend"
+    ],
+    "months": [
+      4,
+      5,
+      6,
+      9,
+      10
+    ],
+    "vibe": "漂流+峡谷，项目可二选一深玩。",
+    "weight": 1,
+    "lat": 23.82,
+    "lng": 112.95,
+    "distanceKm": 181.6,
+    "driveKm": 235,
+    "intro": "古龙峡风景区，夏天清凉。",
+    "food": [
+      "景区餐"
+    ],
+    "sights": [
+      "漂流",
+      "玻璃桥"
+    ],
+    "culture": [
+      "北江峡谷游。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "停车后摆渡，听从现场分流。",
+    "tips": [
+      "停车后摆渡，听从现场分流。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "gd-qy-liannan",
+    "name": "清远·连南瑶寨",
+    "scope": "province",
+    "city": "清远",
+    "province": "广东",
+    "region": "清远",
+    "tags": [
+      "民族",
+      "山地",
+      "文化"
+    ],
+    "purpose": [
+      "culture",
+      "outdoor"
+    ],
+    "budget": [
+      "budget",
+      "mid"
+    ],
+    "duration": [
+      "weekend"
+    ],
+    "months": [
+      3,
+      4,
+      5,
+      9,
+      10,
+      11
+    ],
+    "vibe": "瑶族风情与山城，小众。",
+    "weight": 1,
+    "lat": 24.72,
+    "lng": 112.28,
+    "distanceKm": 302.3,
+    "driveKm": 395,
+    "intro": "连南瑶族自治县山寨体验。",
+    "food": [
+      "瑶家菜"
+    ],
+    "sights": [
+      "千年瑶寨",
+      "油岭"
+    ],
+    "culture": [
+      "瑶族文化。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "山路弯多，慢行；寨区停车听指挥。",
+    "tips": [
+      "山路弯多，慢行；寨区停车听指挥。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "gd-sg-nanhua",
+    "name": "韶关·南华寺",
+    "scope": "province",
+    "city": "韶关",
+    "province": "广东",
+    "region": "韶关",
+    "tags": [
+      "寺庙",
+      "禅宗",
+      "文化"
+    ],
+    "purpose": [
+      "culture",
+      "relax"
+    ],
+    "budget": [
+      "budget",
+      "mid"
+    ],
+    "duration": [
+      "day",
+      "weekend"
+    ],
+    "months": [],
+    "vibe": "六祖道场，丹霞之外的静心线。",
+    "weight": 1,
+    "lat": 24.75,
+    "lng": 113.55,
+    "distanceKm": 250.8,
+    "driveKm": 325,
+    "intro": "曹溪南华寺，禅宗祖庭之一。",
+    "food": [
+      "素斋",
+      "韶关菜"
+    ],
+    "sights": [
+      "大雄宝殿",
+      "六祖殿"
+    ],
+    "culture": [
+      "禅宗文化圣地。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "寺前停车场。",
+    "tips": [
+      "寺前停车场。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "gd-sg-ruyuan",
+    "name": "韶关·乳源大峡谷",
+    "scope": "province",
+    "city": "韶关",
+    "province": "广东",
+    "region": "韶关",
+    "tags": [
+      "峡谷",
+      "户外",
+      "周末"
+    ],
+    "purpose": [
+      "outdoor"
+    ],
+    "budget": [
+      "mid"
+    ],
+    "duration": [
+      "weekend"
+    ],
+    "months": [
+      4,
+      5,
+      9,
+      10
+    ],
+    "vibe": "广东大峡谷，秋冬更舒适。",
+    "weight": 1,
+    "lat": 24.78,
+    "lng": 113.1,
+    "distanceKm": 267.2,
+    "driveKm": 345,
+    "intro": "乳源大峡谷观光与步道。",
+    "food": [
+      "山民菜"
+    ],
+    "sights": [
+      "观景台",
+      "步道"
+    ],
+    "culture": [
+      "粤北地质景观。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "景区停车场，山路注意车距。",
+    "tips": [
+      "景区停车场，山路注意车距。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "gd-sg-zhuji",
+    "name": "韶关·南雄珠玑巷",
+    "scope": "province",
+    "city": "韶关",
+    "province": "广东",
+    "region": "韶关",
+    "tags": [
+      "古巷",
+      "姓氏",
+      "文化"
+    ],
+    "purpose": [
+      "culture",
+      "relax"
+    ],
+    "budget": [
+      "budget"
+    ],
+    "duration": [
+      "day",
+      "weekend"
+    ],
+    "months": [],
+    "vibe": "中原南迁记忆地，古巷闲逛。",
+    "weight": 1,
+    "lat": 25.2,
+    "lng": 114.35,
+    "distanceKm": 296.9,
+    "driveKm": 385,
+    "intro": "珠玑巷历史文化街区。",
+    "food": [
+      "南雄小吃"
+    ],
+    "sights": [
+      "古巷牌坊",
+      "姓氏博物馆"
+    ],
+    "culture": [
+      "移民史符号。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "街区外停车场。",
+    "tips": [
+      "街区外停车场。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "gd-hy-bavaria",
+    "name": "河源·巴伐利亚庄园",
+    "scope": "province",
+    "city": "河源",
+    "province": "广东",
+    "region": "河源",
+    "tags": [
+      "温泉",
+      "度假",
+      "亲子"
+    ],
+    "purpose": [
+      "relax"
+    ],
+    "budget": [
+      "mid",
+      "luxury"
+    ],
+    "duration": [
+      "weekend",
+      "long"
+    ],
+    "months": [],
+    "vibe": "德式风情+温泉，住一晚舒服。",
+    "weight": 1,
+    "lat": 23.85,
+    "lng": 114.55,
+    "distanceKm": 153.8,
+    "driveKm": 200,
+    "intro": "温泉度假酒店集群风格。",
+    "food": [
+      "酒店餐",
+      "河鲜"
+    ],
+    "sights": [
+      "温泉",
+      "庄园景观"
+    ],
+    "culture": [
+      "温泉度假产品。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "园区停车充足。",
+    "tips": [
+      "园区停车充足。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "gd-mz-yannanfei",
+    "name": "梅州·雁南飞",
+    "scope": "province",
+    "city": "梅州",
+    "province": "广东",
+    "region": "梅州",
+    "tags": [
+      "茶田",
+      "客家",
+      "度假"
+    ],
+    "purpose": [
+      "relax",
+      "culture",
+      "food"
+    ],
+    "budget": [
+      "mid"
+    ],
+    "duration": [
+      "weekend"
+    ],
+    "months": [
+      3,
+      4,
+      5,
+      9,
+      10,
+      11
+    ],
+    "vibe": "茶田梯田，客家度假区。",
+    "weight": 1,
+    "lat": 24.4,
+    "lng": 116.2,
+    "distanceKm": 300.6,
+    "driveKm": 390,
+    "intro": "雁南飞茶田景区，可体验茶与客家餐。",
+    "food": [
+      "客家菜",
+      "茶餐"
+    ],
+    "sights": [
+      "茶田",
+      "围龙屋风情"
+    ],
+    "culture": [
+      "客家茶文化。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "景区停车场。",
+    "tips": [
+      "景区停车场。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "gd-mz-weilong",
+    "name": "梅州·围龙屋探访",
+    "scope": "province",
+    "city": "梅州",
+    "province": "广东",
+    "region": "梅州",
+    "tags": [
+      "围屋",
+      "客家",
+      "建筑"
+    ],
+    "purpose": [
+      "culture"
+    ],
+    "budget": [
+      "budget",
+      "mid"
+    ],
+    "duration": [
+      "weekend"
+    ],
+    "months": [],
+    "vibe": "世界客都核心体验：围龙屋。",
+    "weight": 1,
+    "lat": 24.3,
+    "lng": 116.12,
+    "distanceKm": 287.1,
+    "driveKm": 375,
+    "intro": "选择开放参观的典型围龙屋。",
+    "food": [
+      "盐焗鸡",
+      "酿豆腐"
+    ],
+    "sights": [
+      "围龙屋",
+      "客家博物馆可选"
+    ],
+    "culture": [
+      "客家民居。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "村落停车听村民指引，勿堵门。",
+    "tips": [
+      "村落停车听村民指引，勿堵门。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "gd-cz-paifang",
+    "name": "潮州·牌坊街夜游",
+    "scope": "province",
+    "city": "潮州",
+    "province": "广东",
+    "region": "潮州",
+    "tags": [
+      "古城",
+      "夜景",
+      "美食"
+    ],
+    "purpose": [
+      "food",
+      "culture",
+      "relax"
+    ],
+    "budget": [
+      "budget",
+      "mid"
+    ],
+    "duration": [
+      "weekend"
+    ],
+    "months": [],
+    "vibe": "牌坊与潮菜，夜色最迷人。",
+    "weight": 1,
+    "lat": 23.66,
+    "lng": 116.63,
+    "distanceKm": 290.9,
+    "driveKm": 380,
+    "intro": "古城牌坊街夜游+牛肉火锅。",
+    "food": [
+      "潮州牛肉火锅",
+      "卤水",
+      "春饼"
+    ],
+    "sights": [
+      "牌坊街",
+      "广济桥夜景"
+    ],
+    "culture": [
+      "潮汕古城。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "古城外围停车场，巷内禁乱停。",
+    "tips": [
+      "古城外围停车场，巷内禁乱停。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "gd-st-xiaogongyuan",
+    "name": "汕头·小公园开埠区",
+    "scope": "province",
+    "city": "汕头",
+    "province": "广东",
+    "region": "汕头",
+    "tags": [
+      "骑楼",
+      "历史",
+      "美食"
+    ],
+    "purpose": [
+      "culture",
+      "food",
+      "relax"
+    ],
+    "budget": [
+      "budget",
+      "mid"
+    ],
+    "duration": [
+      "day",
+      "weekend"
+    ],
+    "months": [],
+    "vibe": "开埠骑楼，逛吃怀旧。",
+    "weight": 1,
+    "lat": 23.36,
+    "lng": 116.68,
+    "distanceKm": 283.4,
+    "driveKm": 370,
+    "intro": "小公园开埠区骑楼修复街区。",
+    "food": [
+      "牛肉火锅",
+      "蚝烙",
+      "泵汁"
+    ],
+    "sights": [
+      "骑楼街",
+      "老妈宫"
+    ],
+    "culture": [
+      "汕头开埠史。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "周边商场停车。",
+    "tips": [
+      "周边商场停车。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "gd-sw-honghai",
+    "name": "汕尾·红海湾",
+    "scope": "province",
+    "city": "汕尾",
+    "province": "广东",
+    "region": "汕尾",
+    "tags": [
+      "海滩",
+      "冲浪",
+      "周末"
+    ],
+    "purpose": [
+      "outdoor",
+      "relax"
+    ],
+    "budget": [
+      "budget",
+      "mid"
+    ],
+    "duration": [
+      "weekend"
+    ],
+    "months": [
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "vibe": "冲浪与海滩，小众海边。",
+    "weight": 1,
+    "lat": 22.68,
+    "lng": 115.55,
+    "distanceKm": 153.9,
+    "driveKm": 200,
+    "intro": "红海湾遮浪，浪点知名。",
+    "food": [
+      "海鲜"
+    ],
+    "sights": [
+      "遮浪半岛",
+      "沙滩"
+    ],
+    "culture": [
+      "粤东冲浪地。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "海边停车场，注意潮汐安全。",
+    "tips": [
+      "海边停车场，注意潮汐安全。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "gd-jy-huangqi",
+    "name": "揭阳·黄岐山",
+    "scope": "province",
+    "city": "揭阳",
+    "province": "广东",
+    "region": "揭阳",
+    "tags": [
+      "登山",
+      "城市",
+      "轻松"
+    ],
+    "purpose": [
+      "outdoor",
+      "relax"
+    ],
+    "budget": [
+      "budget"
+    ],
+    "duration": [
+      "day",
+      "weekend"
+    ],
+    "months": [
+      3,
+      4,
+      5,
+      10,
+      11
+    ],
+    "vibe": "揭阳登高，轻松半日。",
+    "weight": 1,
+    "lat": 23.55,
+    "lng": 116.37,
+    "distanceKm": 261.7,
+    "driveKm": 340,
+    "intro": "黄岐山公园，市民登山。",
+    "food": [
+      "揭阳粿条",
+      "牛肉"
+    ],
+    "sights": [
+      "山顶观景"
+    ],
+    "culture": [
+      "揭阳城市绿肺。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "山脚停车。",
+    "tips": [
+      "山脚停车。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "gd-yf-guoen",
+    "name": "云浮·新兴国恩寺",
+    "scope": "province",
+    "city": "云浮",
+    "province": "广东",
+    "region": "云浮",
+    "tags": [
+      "寺庙",
+      "六祖",
+      "文化"
+    ],
+    "purpose": [
+      "culture",
+      "relax"
+    ],
+    "budget": [
+      "budget",
+      "mid"
+    ],
+    "duration": [
+      "day",
+      "weekend"
+    ],
+    "months": [],
+    "vibe": "六祖故里，禅意一日。",
+    "weight": 1,
+    "lat": 22.7,
+    "lng": 112.23,
+    "distanceKm": 188.4,
+    "driveKm": 245,
+    "intro": "国恩寺与六祖故居周边。",
+    "food": [
+      "素斋",
+      "云浮特产"
+    ],
+    "sights": [
+      "国恩寺",
+      "报恩塔"
+    ],
+    "culture": [
+      "禅宗故里。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "寺前停车场。",
+    "tips": [
+      "寺前停车场。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "gd-zq-panlong",
+    "name": "肇庆·盘龙峡",
+    "scope": "province",
+    "city": "肇庆",
+    "province": "广东",
+    "region": "肇庆",
+    "tags": [
+      "漂流",
+      "瀑布",
+      "户外"
+    ],
+    "purpose": [
+      "outdoor"
+    ],
+    "budget": [
+      "mid"
+    ],
+    "duration": [
+      "weekend"
+    ],
+    "months": [
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "vibe": "瀑布漂流，肇庆周末线。",
+    "weight": 1,
+    "lat": 23.2,
+    "lng": 112.35,
+    "distanceKm": 189.6,
+    "driveKm": 245,
+    "intro": "盘龙峡漂流与水上项目。",
+    "food": [
+      "农家菜"
+    ],
+    "sights": [
+      "漂流",
+      "瀑布群"
+    ],
+    "culture": [
+      "粤西山地游乐。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "景区停车场。",
+    "tips": [
+      "景区停车场。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "gd-zq-deqing",
+    "name": "肇庆·德庆学宫",
+    "scope": "province",
+    "city": "肇庆",
+    "province": "广东",
+    "region": "肇庆",
+    "tags": [
+      "古建",
+      "文化",
+      "一日"
+    ],
+    "purpose": [
+      "culture"
+    ],
+    "budget": [
+      "budget"
+    ],
+    "duration": [
+      "day",
+      "weekend"
+    ],
+    "months": [],
+    "vibe": "岭南古学堂，小众文化点。",
+    "weight": 1,
+    "lat": 23.15,
+    "lng": 111.78,
+    "distanceKm": 243.0,
+    "driveKm": 315,
+    "intro": "德庆学宫等古建。",
+    "food": [
+      "西江河鲜"
+    ],
+    "sights": [
+      "学宫",
+      "龙母祖庙可顺路"
+    ],
+    "culture": [
+      "西江古县文化。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "景点外停车场。",
+    "tips": [
+      "景点外停车场。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "gd-yd-yingde",
+    "name": "清远·英德峰林红茶",
+    "scope": "province",
+    "city": "清远",
+    "province": "广东",
+    "region": "清远",
+    "tags": [
+      "峰林",
+      "茶",
+      "户外"
+    ],
+    "purpose": [
+      "outdoor",
+      "culture",
+      "relax"
+    ],
+    "budget": [
+      "mid"
+    ],
+    "duration": [
+      "weekend"
+    ],
+    "months": [
+      3,
+      4,
+      5,
+      9,
+      10,
+      11
+    ],
+    "vibe": "峰林观景+英德红茶。",
+    "weight": 1,
+    "lat": 24.18,
+    "lng": 113.4,
+    "distanceKm": 194.0,
+    "driveKm": 250,
+    "intro": "英西峰林与茶文化体验。",
+    "food": [
+      "英德红茶茶点",
+      "清远鸡"
+    ],
+    "sights": [
+      "峰林公路",
+      "茶园"
+    ],
+    "culture": [
+      "英德红茶产区。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "观景台停车，山路慢行。",
+    "tips": [
+      "观景台停车，山路慢行。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "gd-ns-nansha",
+    "name": "广州·南沙天后宫与湿地",
+    "scope": "province",
+    "city": "广州",
+    "province": "广东",
+    "region": "广州",
+    "tags": [
+      "湿地",
+      "天后",
+      "轻松"
+    ],
+    "purpose": [
+      "relax",
+      "culture",
+      "outdoor"
+    ],
+    "budget": [
+      "budget",
+      "mid"
+    ],
+    "duration": [
+      "day",
+      "weekend"
+    ],
+    "months": [],
+    "vibe": "南沙滨海，深圳车程友好。",
+    "weight": 1,
+    "lat": 22.75,
+    "lng": 113.58,
+    "distanceKm": 54.2,
+    "driveKm": 70,
+    "intro": "天后宫与湿地公园组合。",
+    "food": [
+      "南沙海鲜",
+      "早茶"
+    ],
+    "sights": [
+      "天后宫",
+      "湿地"
+    ],
+    "culture": [
+      "南沙新区滨海人文。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "景区停车场充足。",
+    "tips": [
+      "景区停车场充足。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "gd-fromhua",
+    "name": "广州·从化温泉",
+    "scope": "province",
+    "city": "广州",
+    "province": "广东",
+    "region": "广州",
+    "tags": [
+      "温泉",
+      "度假",
+      "周末"
+    ],
+    "purpose": [
+      "relax"
+    ],
+    "budget": [
+      "mid",
+      "luxury"
+    ],
+    "duration": [
+      "weekend"
+    ],
+    "months": [
+      11,
+      12,
+      1,
+      2,
+      3
+    ],
+    "vibe": "温泉住一晚，广州近郊。",
+    "weight": 1,
+    "lat": 23.55,
+    "lng": 113.6,
+    "distanceKm": 121.4,
+    "driveKm": 160,
+    "intro": "从化温泉度假区。",
+    "food": [
+      "温泉酒店餐",
+      "荔枝相关季"
+    ],
+    "sights": [
+      "温泉",
+      "溪头村可选"
+    ],
+    "culture": [
+      "广府温泉度假。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "酒店停车为主。",
+    "tips": [
+      "酒店停车为主。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "gd-zq-dinghu2",
+    "name": "肇庆·鼎湖山负氧离子日",
+    "scope": "province",
+    "city": "肇庆",
+    "province": "广东",
+    "region": "肇庆",
+    "tags": [
+      "森林",
+      "徒步",
+      "清凉"
+    ],
+    "purpose": [
+      "outdoor",
+      "relax"
+    ],
+    "budget": [
+      "budget",
+      "mid"
+    ],
+    "duration": [
+      "day",
+      "weekend"
+    ],
+    "months": [
+      4,
+      5,
+      6,
+      9,
+      10
+    ],
+    "vibe": "吸氧徒步，避开高峰更舒服。",
+    "weight": 1,
+    "lat": 23.17,
+    "lng": 112.55,
+    "distanceKm": 169.5,
+    "driveKm": 220,
+    "intro": "鼎湖山徒步半日。",
+    "food": [
+      "山门简餐"
+    ],
+    "sights": [
+      "飞水潭",
+      "天溪"
+    ],
+    "culture": [
+      "北回归线绿肺。"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "山门停车，节假日限流。",
+    "tips": [
+      "山门停车，节假日限流。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "nb-gx-detian",
+    "name": "崇左·德天跨国瀑布",
+    "scope": "nearby",
+    "city": "崇左",
+    "province": "广西",
+    "region": "广西",
+    "tags": [
+      "瀑布",
+      "边境",
+      "户外"
+    ],
+    "purpose": [
+      "outdoor",
+      "relax"
+    ],
+    "budget": [
+      "mid",
+      "luxury"
+    ],
+    "duration": [
+      "weekend",
+      "long"
+    ],
+    "months": [
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "vibe": "跨国瀑布，值得专程。",
+    "weight": 1,
+    "lat": 22.86,
+    "lng": 106.72,
+    "distanceKm": 753.5,
+    "driveKm": 965,
+    "intro": "崇左·德天跨国瀑布，深圳出发跨省可达。",
+    "food": [
+      "当地特色"
+    ],
+    "sights": [
+      "核心景点"
+    ],
+    "culture": [
+      "区域特色"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "跨省高速，抵达优先景区停车场。",
+    "tips": [
+      "跨省高速，抵达优先景区停车场。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "nb-hn-fenghuang2",
+    "name": "湘西·芙蓉镇",
+    "scope": "nearby",
+    "city": "湘西",
+    "province": "湖南",
+    "region": "湖南",
+    "tags": [
+      "古镇",
+      "瀑布",
+      "夜景"
+    ],
+    "purpose": [
+      "culture",
+      "relax",
+      "food"
+    ],
+    "budget": [
+      "budget",
+      "mid"
+    ],
+    "duration": [
+      "weekend",
+      "long"
+    ],
+    "months": [],
+    "vibe": "挂在瀑布上的苗寨古镇。",
+    "weight": 1,
+    "lat": 28.75,
+    "lng": 109.95,
+    "distanceKm": 803.5,
+    "driveKm": 1030,
+    "intro": "湘西·芙蓉镇，深圳出发跨省可达。",
+    "food": [
+      "当地特色"
+    ],
+    "sights": [
+      "核心景点"
+    ],
+    "culture": [
+      "区域特色"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "跨省高速，抵达优先景区停车场。",
+    "tips": [
+      "跨省高速，抵达优先景区停车场。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "nb-fj-quanzhou",
+    "name": "泉州·西街开元寺",
+    "scope": "nearby",
+    "city": "泉州",
+    "province": "福建",
+    "region": "福建",
+    "tags": [
+      "世遗",
+      "美食",
+      "文化"
+    ],
+    "purpose": [
+      "culture",
+      "food",
+      "relax"
+    ],
+    "budget": [
+      "budget",
+      "mid"
+    ],
+    "duration": [
+      "weekend",
+      "long"
+    ],
+    "months": [],
+    "vibe": "世遗古城，面线糊与开元寺。",
+    "weight": 1,
+    "lat": 24.91,
+    "lng": 118.59,
+    "distanceKm": 531.1,
+    "driveKm": 680,
+    "intro": "泉州·西街开元寺，深圳出发跨省可达。",
+    "food": [
+      "当地特色"
+    ],
+    "sights": [
+      "核心景点"
+    ],
+    "culture": [
+      "区域特色"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "跨省高速，抵达优先景区停车场。",
+    "tips": [
+      "跨省高速，抵达优先景区停车场。",
+      "车机可用百度地图导航。"
+    ]
+  },
+  {
+    "id": "nb-jx-pingxiang",
+    "name": "萍乡·武功山",
+    "scope": "nearby",
+    "city": "萍乡",
+    "province": "江西",
+    "region": "江西",
+    "tags": [
+      "露营",
+      "草原",
+      "户外"
+    ],
+    "purpose": [
+      "outdoor"
+    ],
+    "budget": [
+      "mid"
+    ],
+    "duration": [
+      "weekend",
+      "long"
+    ],
+    "months": [
+      4,
+      5,
+      9,
+      10
+    ],
+    "vibe": "山顶草原露营胜地。",
+    "weight": 1,
+    "lat": 27.45,
+    "lng": 114.18,
+    "distanceKm": 545.8,
+    "driveKm": 700,
+    "intro": "萍乡·武功山，深圳出发跨省可达。",
+    "food": [
+      "当地特色"
+    ],
+    "sights": [
+      "核心景点"
+    ],
+    "culture": [
+      "区域特色"
+    ],
+    "route": "（路径将按出行基地动态生成）",
+    "driveTip": "跨省高速，抵达优先景区停车场。",
+    "tips": [
+      "跨省高速，抵达优先景区停车场。",
+      "车机可用百度地图导航。"
     ]
   }
 ]

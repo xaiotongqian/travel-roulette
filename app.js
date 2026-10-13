@@ -14,8 +14,8 @@
   const SEASON_LABEL = { spring: "春季", summer: "夏季", autumn: "秋季", winter: "冬季" };
 
   const PRESETS = {
-    "weekend-budget": { scope: "city", budget: "budget", duration: "weekend", month: "0", maxDistanceKm: 0, label: "深圳周末穷游" },
-    "province-short": { scope: "province", budget: "mid", duration: "weekend", month: "0", maxDistanceKm: 0, label: "广东短途" },
+    "weekend-budget": { scope: "city", budget: "budget", duration: "weekend", month: "0", maxDistanceKm: 0, label: "市内周末穷游" },
+    "province-short": { scope: "province", budget: "mid", duration: "weekend", month: "0", maxDistanceKm: 0, label: "省内短途" },
     "nearby-500": { scope: "nearby", budget: "mid", duration: "weekend", month: "0", maxDistanceKm: 500, label: "隔壁省约500km车程" },
     "national-long": { scope: "national", budget: "mid", duration: "custom", tripDays: 7, month: "0", maxDistanceKm: 0, label: "国内长假·7天" },
   };
@@ -47,6 +47,9 @@
       history: [],
       theme: "light",
       soundMuted: false,
+      baseId: "sz",
+      useGpsOrigin: false,
+      gps: null, // { lat, lng, at }
       homeCity: (window.TRAVEL_DATA && TRAVEL_DATA.homeCity) || "深圳",
     };
   }
@@ -60,10 +63,16 @@
       var theme = parsed.themeChosen
         ? (parsed.theme === "dark" ? "dark" : "light")
         : "light";
+      var bases = (window.TRAVEL_DATA && TRAVEL_DATA.bases) || [];
+      var baseId = parsed.baseId || "sz";
+      if (!bases.some(function (b) { return b.id === baseId; })) baseId = (bases[0] && bases[0].id) || "sz";
       return Object.assign(defaultUser(), parsed, {
         history: parsed.history || [],
         theme: theme,
         soundMuted: parsed.soundMuted === true,
+        baseId: baseId,
+        useGpsOrigin: parsed.useGpsOrigin === true,
+        gps: parsed.gps && typeof parsed.gps.lat === "number" ? parsed.gps : null,
       });
     } catch (e) {
       return defaultUser();
@@ -98,9 +107,35 @@
     return mergePlace(Object.assign({}, full, place));
   }
 
+  function getBases() {
+    return (window.TRAVEL_DATA && TRAVEL_DATA.bases) || [];
+  }
+
+  function currentBase() {
+    var bases = getBases();
+    var id = (state.user && state.user.baseId) || "sz";
+    return bases.find(function (b) { return b.id === id; }) || bases[0] || {
+      id: "sz", name: "深圳", lat: 22.5431, lng: 114.0579, province: "广东", neighbors: []
+    };
+  }
+
+  /** 距离/导航原点：GPS 或基地城市中心 */
+  function currentOrigin() {
+    if (state.user.useGpsOrigin && state.user.gps && typeof state.user.gps.lat === "number") {
+      return {
+        lat: state.user.gps.lat,
+        lng: state.user.gps.lng,
+        label: "当前定位",
+        isGps: true,
+      };
+    }
+    var b = currentBase();
+    return { lat: b.lat, lng: b.lng, label: b.name, isGps: false };
+  }
+
   function homeCenter() {
-    var c = (window.TRAVEL_DATA && TRAVEL_DATA.homeCenter) || { lat: 22.5431, lng: 114.0579 };
-    return c;
+    var o = currentOrigin();
+    return { lat: o.lat, lng: o.lng, label: o.label };
   }
 
   function haversineKm(lat1, lng1, lat2, lng2) {
@@ -114,10 +149,25 @@
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   }
 
-  /** 估算行车距离（优先 driveKm）；无数据则不参与距离剔除 */
+  function driveHoursText(km) {
+    if (km == null || isNaN(km)) return "";
+    if (km <= 25) return "约20–40分钟";
+    if (km <= 50) return "约45–70分钟";
+    if (km <= 100) return "约1–1.5小时";
+    if (km <= 180) return "约1.5–2.5小时";
+    if (km <= 280) return "约3–4小时";
+    if (km <= 450) return "约4–6小时";
+    if (km <= 700) return "约6–9小时";
+    return "建议拆成两日或高铁+租车";
+  }
+
+  /** 相对当前原点估算行车距离（直线×系数） */
   function placeDriveKm(p) {
-    if (typeof p.driveKm === "number") return p.driveKm;
-    return null;
+    if (typeof p.lat !== "number" || typeof p.lng !== "number") return null;
+    var o = currentOrigin();
+    var straight = haversineKm(o.lat, o.lng, p.lat, p.lng);
+    var mul = straight < 40 ? 1.45 : straight < 200 ? 1.3 : 1.25;
+    return Math.max(1, Math.round(straight * mul / 5) * 5);
   }
 
   function distanceLabel(km) {
@@ -130,9 +180,46 @@
     return "估算行车约" + distanceLabel(km);
   }
 
-  // 兼容旧调用名 → 行车距离
   function placeDistanceKm(p) {
     return placeDriveKm(p);
+  }
+
+  /** 相对基地：市内/省内/隔壁省/国内 */
+  function placeEffectiveScope(p) {
+    var base = currentBase();
+    var city = p.city || "";
+    var province = p.province || "";
+    if (city && city === base.name) return "city";
+    // 直辖市/同名省市
+    if (province && province === base.province) {
+      // 同省但非本市 → 省内；本市已在上面
+      return "province";
+    }
+    var neighbors = base.neighbors || [];
+    if (province && neighbors.indexOf(province) !== -1) return "nearby";
+    return "national";
+  }
+
+  function buildDriveRouteText(place) {
+    var o = currentOrigin();
+    var km = placeDriveKm(place);
+    var tip = place.driveTip || place.route || "抵达后优先官方停车场；车机用百度地图导航。";
+    if (tip.indexOf("路径将按") !== -1) tip = place.driveTip || "抵达后优先官方停车场。";
+    var head = km != null
+      ? ("从" + o.label + "自驾约" + Math.round(km) + "km（" + driveHoursText(km) + "）。")
+      : ("从" + o.label + "出发。");
+    return head + tip;
+  }
+
+  function nearestBaseId(lat, lng) {
+    var bases = getBases();
+    var best = bases[0] && bases[0].id;
+    var bestD = Infinity;
+    bases.forEach(function (b) {
+      var d = haversineKm(lat, lng, b.lat, b.lng);
+      if (d < bestD) { bestD = d; best = b.id; }
+    });
+    return { id: best, km: bestD };
   }
 
   function setVisited(id, visited) {
@@ -230,7 +317,7 @@
     return allPlaces()
       .map(mergePlace)
       .filter(function (p) {
-        if (p.scope !== state.scope) return false;
+        if (placeEffectiveScope(p) !== state.scope) return false;
         if (state.excludeVisited && p.visited) return false;
         if (p.weight <= 0) return false;
         if (!placeMatchesBudget(p)) return false;
@@ -463,7 +550,11 @@
     var scope = SCOPE_LABEL[state.scope];
     el.classList.toggle("warn", pool.length === 0);
     var distTxt = state.maxDistanceKm > 0 ? (" · 行车≤" + state.maxDistanceKm + "km") : "";
-    el.innerHTML = "当前候选 <strong>" + pool.length + "</strong> 个地点（" + scope + " · 预算" +
+    var baseName = currentBase().name;
+    var originLabel = currentOrigin().label;
+    el.innerHTML = "基地 <strong>" + escapeHtml(baseName) + "</strong>" +
+      (originLabel !== baseName ? "（起点:" + escapeHtml(originLabel) + "）" : "") +
+      " · 候选 <strong>" + pool.length + "</strong>（" + scope + " · 预算" +
       BUDGET_LABEL[state.budget] + " · " + durationFilterLabel() +
       purposeFilterLabel() +
       monthFilterLabel(state.month) + distTxt + "）";
@@ -543,7 +634,7 @@
       li.className = "history-item";
       li.innerHTML =
         '<div class="info"><div class="name">' + escapeHtml(h.name) + "</div>" +
-        '<div class="when">' + formatWhen(h.at) + " · " + SCOPE_LABEL[h.scope] + "</div></div>" +
+        '<div class="when">' + formatWhen(h.at) + " · " + (SCOPE_LABEL[h.scope] || "") + "</div></div>" +
         '<div class="acts">' +
           '<button type="button" class="btn btn-ghost btn-sm btn-hist-go">再去</button>' +
           '<button type="button" class="btn btn-ghost btn-sm btn-hist-star">加心</button>' +
@@ -611,25 +702,24 @@
     return place.mapQuery || (place.region ? place.region + " " + place.name : place.name);
   }
 
-  /** 百度网页驾车导航（深圳 → 目的地）；有坐标更准 */
+  /** 百度网页驾车导航（当前基地/定位 → 目的地） */
   function baiduDrivingUrl(place) {
-    var origin = homeCenter();
+    var origin = currentOrigin();
     var name = mapQueryFor(place);
     var destName = encodeURIComponent(name);
-    var originPart = "latlng:" + origin.lat + "," + origin.lng + "|name:" + encodeURIComponent("深圳");
+    var originPart = "latlng:" + origin.lat + "," + origin.lng + "|name:" + encodeURIComponent(origin.label);
     var destPart;
     if (typeof place.lat === "number" && typeof place.lng === "number") {
       destPart = "latlng:" + place.lat + "," + place.lng + "|name:" + destName;
     } else {
       destPart = "name:" + destName;
     }
-    // 官方方向检索 HTML 输出，浏览器/车机 WebView 可开
+    var region = encodeURIComponent(currentBase().name || "中国");
     return "https://api.map.baidu.com/direction?origin=" + originPart +
       "&destination=" + destPart +
-      "&mode=driving&region=" + encodeURIComponent("深圳") +
+      "&mode=driving&region=" + region +
       "&output=html&coord_type=gcj02&src=travel-roulette";
   }
-
 
   function setMapLinks(place) {
     var q = encodeURIComponent(mapQueryFor(place));
@@ -638,27 +728,24 @@
     var amap = $("#map-amap");
     var google = $("#map-google");
     var hint = $("#map-nav-hint");
-    var webNav = baiduDrivingUrl(place);
+    var o = currentOrigin();
     if (nav) {
-      nav.href = webNav;
-      nav.title = "从深圳驾车前往（百度地图）";
+      nav.href = baiduDrivingUrl(place);
+      nav.title = "从" + o.label + "驾车前往（百度地图）";
     }
     if (baidu) baidu.href = "https://map.baidu.com/search?query=" + q;
-    // 高德/Google 次要：仍给搜索或导航
     if (amap) {
       if (typeof place.lat === "number" && typeof place.lng === "number") {
-        var o = homeCenter();
-        amap.href = "https://uri.amap.com/navigation?from=" + o.lng + "," + o.lat + ",深圳&to=" +
-          place.lng + "," + place.lat + "," + encodeURIComponent(mapQueryFor(place)) +
-          "&mode=car&coordinate=gaode&callnative=0";
+        amap.href = "https://uri.amap.com/navigation?from=" + o.lng + "," + o.lat + "," +
+          encodeURIComponent(o.label) + "&to=" + place.lng + "," + place.lat + "," +
+          encodeURIComponent(mapQueryFor(place)) + "&mode=car&coordinate=gaode&callnative=0";
       } else {
         amap.href = "https://uri.amap.com/search?keyword=" + q;
       }
     }
     if (google) {
       if (typeof place.lat === "number" && typeof place.lng === "number") {
-        var oc = homeCenter();
-        google.href = "https://www.google.com/maps/dir/?api=1&origin=" + oc.lat + "," + oc.lng +
+        google.href = "https://www.google.com/maps/dir/?api=1&origin=" + o.lat + "," + o.lng +
           "&destination=" + place.lat + "," + place.lng + "&travelmode=driving";
       } else {
         google.href = "https://www.google.com/maps/search/?api=1&query=" + q;
@@ -666,9 +753,9 @@
     }
     if (hint) {
       var km = placeDriveKm(place);
-      hint.textContent = "默认从深圳中心驾车" +
+      hint.textContent = "从「" + o.label + "」驾车" +
         (km != null ? "（估算约" + Math.round(km) + "km）" : "") +
-        "；车机可打开「百度驾车导航」或搜索同名终点。";
+        "；车机可开百度导航或搜同名终点。";
     }
   }
 
@@ -828,7 +915,7 @@
   function fillResultContent(place) {
     place = enrichPlace(place);
     state.lastResult = place;
-    $("#result-badge").textContent = SCOPE_LABEL[place.scope] + (place.region ? " · " + place.region : "");
+    $("#result-badge").textContent = SCOPE_LABEL[placeEffectiveScope(place)] + (place.region ? " · " + place.region : "");
     $("#result-name").textContent = place.name;
     var dkm = placeDriveKm(place);
     var purposeTxt = (place.purpose || []).map(function (x) { return PURPOSE_LABEL[x] || x; }).join("·");
@@ -850,7 +937,7 @@
     fillDetailList($("#detail-food"), place.food, "暂无美食推荐。");
     fillDetailList($("#detail-sights"), place.sights, "暂无打卡点说明。");
     fillDetailList($("#detail-culture"), place.culture, "暂无文化/氛围说明。");
-    fillDetailText($("#detail-route"), place.route, "暂无自驾路径建议，可用百度驾车导航规划。");
+    fillDetailText($("#detail-route"), buildDriveRouteText(place), "暂无自驾路径建议，可用百度驾车导航规划。");
     fillDetailList($("#detail-tips"), place.tips, "暂无小贴士。");
     setMapLinks(place);
   }
@@ -1002,7 +1089,7 @@
     list.innerHTML = "";
 
     var places = allPlaces().map(mergePlace);
-    if (filterScope !== "all") places = places.filter(function (p) { return p.scope === filterScope; });
+    if (filterScope !== "all") places = places.filter(function (p) { return placeEffectiveScope(p) === filterScope; });
     if (filterVisit === "visited") places = places.filter(function (p) { return p.visited; });
     if (filterVisit === "todo") places = places.filter(function (p) { return !p.visited; });
     if (state.tagFilter) {
@@ -1033,7 +1120,7 @@
         checkHtml +
         "<div>" +
           '<div class="name">' + escapeHtml(p.name) + (p.visited ? " ✓" : "") + "</div>" +
-          '<div class="sub">' + SCOPE_LABEL[p.scope] + " · " + escapeHtml(p.region || "") +
+          '<div class="sub">' + SCOPE_LABEL[placeEffectiveScope(p)] + " · " + escapeHtml(p.region || "") +
             (placeDriveKm(p) != null ? " · " + driveDistanceHint(placeDriveKm(p)) : "") +
             ((p.purpose || []).length ? " · " + (p.purpose || []).map(function (x) { return PURPOSE_LABEL[x] || x; }).join("/") : "") +
             " · " + (p.tags || []).slice(0, 3).map(escapeHtml).join(" / ") + customBadge + "</div>" +
@@ -1135,7 +1222,7 @@
         li.className = "place-item visited no-check";
         li.innerHTML =
           "<div><div class=\"name\">" + escapeHtml(p.name) + "</div>" +
-          '<div class="sub">' + SCOPE_LABEL[p.scope] + " · " + escapeHtml(p.region || "") + "</div></div>" +
+          '<div class="sub">' + SCOPE_LABEL[placeEffectiveScope(p)] + " · " + escapeHtml(p.region || "") + "</div></div>" +
           '<button type="button" class="btn btn-ghost btn-sm">取消</button>';
         li.querySelector("button").addEventListener("click", function () {
           setVisited(p.id, false);
@@ -1194,10 +1281,20 @@
     if (!duration.length) { toast("请至少选一个出行时长"); return; }
     if (!purpose.length) purpose = ["relax"];
 
+    var base = currentBase();
+    var cityName = region;
+    var provinceName = base.province;
+    if (scope === "city") { cityName = base.name; provinceName = base.province; }
+    else if (scope === "province") { provinceName = base.province; cityName = region || base.name; }
+    else if (scope === "nearby") { provinceName = region || (base.neighbors[0] || "周边"); cityName = region || provinceName; }
+    else { provinceName = region || "国内"; cityName = region || name; }
+
     state.user.custom.push({
       id: "custom-" + Date.now().toString(36),
       name: name,
       scope: scope,
+      city: cityName,
+      province: provinceName,
       region: region,
       tags: tags.length ? tags : ["自定义"],
       purpose: purpose,
@@ -1253,7 +1350,12 @@
           theme: user.theme === "dark" ? "dark" : "light",
           soundMuted: user.soundMuted === true,
           homeCity: user.homeCity || state.user.homeCity,
+          baseId: user.baseId || state.user.baseId || "sz",
+          useGpsOrigin: user.useGpsOrigin === true,
+          gps: user.gps || state.user.gps || null,
         });
+        renderBaseChips();
+        updateBaseHint();
         saveUser();
         applyTheme(state.user.theme);
         updatePoolHint();
@@ -1313,10 +1415,97 @@
     toast("已放宽：适中 · 周末 · 含已去 · 不限季节/行车距离");
   }
 
+  function updateBaseHint() {
+    var b = currentBase();
+    var o = currentOrigin();
+    var hint = $("#base-hint");
+    var home = $("#home-label");
+    var msg = "基地「" + b.name + "」· 省内看" + b.province + " · 隔壁：" + (b.neighbors || []).slice(0, 4).join("/") + "等";
+    if (o.isGps) msg += " · 距离/导航以当前定位为起点";
+    if (hint) hint.textContent = msg;
+    if (home) home.textContent = "出行基地：" + b.name + "（可切换）· 定位可选最近城市";
+    // 预设按钮文案随基地
+    var chips = document.querySelectorAll(".preset-chip");
+    chips.forEach(function (c) {
+      var key = c.dataset.preset;
+      if (key === "weekend-budget") c.textContent = "🎒 " + b.name + "市内周末穷游";
+      if (key === "province-short") c.textContent = "🚗 " + b.province + "省内短途";
+    });
+  }
+
+  function renderBaseChips() {
+    var box = $("#base-chips");
+    if (!box) return;
+    box.innerHTML = "";
+    getBases().forEach(function (b) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "base-chip" + (state.user.baseId === b.id ? " active" : "");
+      btn.dataset.baseId = b.id;
+      btn.textContent = b.name;
+      btn.addEventListener("click", function () {
+        state.user.baseId = b.id;
+        state.user.homeCity = b.name;
+        // 手动选城时不强行关 GPS 开关，但提示
+        saveUser();
+        renderBaseChips();
+        updateBaseHint();
+        updatePoolHint();
+        if ($("#place-list")) renderPlaces();
+        toast("已切换基地：" + b.name);
+      });
+      box.appendChild(btn);
+    });
+  }
+
+  function requestGeolocation() {
+    if (!navigator.geolocation) {
+      toast("当前浏览器不支持定位");
+      return;
+    }
+    toast("正在定位…");
+    navigator.geolocation.getCurrentPosition(function (pos) {
+      var lat = pos.coords.latitude;
+      var lng = pos.coords.longitude;
+      state.user.gps = { lat: lat, lng: lng, at: new Date().toISOString() };
+      var near = nearestBaseId(lat, lng);
+      state.user.baseId = near.id;
+      var b = currentBase();
+      state.user.homeCity = b.name;
+      saveUser();
+      renderBaseChips();
+      updateBaseHint();
+      updatePoolHint();
+      var gpsCb = $("#use-gps-origin");
+      if (gpsCb) gpsCb.checked = state.user.useGpsOrigin;
+      toast("定位成功：最近基地「" + b.name + "」（约" + Math.round(near.km) + "km）");
+    }, function (err) {
+      toast("定位失败：" + (err && err.message ? err.message : "请检查权限"));
+    }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 });
+  }
+
   function init() {
-    var home = state.user.homeCity || TRAVEL_DATA.homeCity;
-    $("#home-label").textContent = "默认市内：" + home + " · 省内：广东 · 可筛隔壁省与距离";
+    if (!state.user.baseId) state.user.baseId = "sz";
     applyTheme(state.user.theme || "light");
+    renderBaseChips();
+    updateBaseHint();
+    var gpsCb = $("#use-gps-origin");
+    if (gpsCb) {
+      gpsCb.checked = !!state.user.useGpsOrigin;
+      gpsCb.addEventListener("change", function () {
+        if (this.checked && !(state.user.gps && state.user.gps.lat)) {
+          this.checked = false;
+          toast("请先点「定位」获取当前位置");
+          return;
+        }
+        state.user.useGpsOrigin = this.checked;
+        saveUser();
+        updateBaseHint();
+        updatePoolHint();
+        toast(this.checked ? "已用当前定位作距离/导航起点" : "已改回基地城市中心为起点");
+      });
+    }
+    if ($("#btn-geo")) $("#btn-geo").addEventListener("click", requestGeolocation);
 
     bindSeg("#seg-scope", "scope");
     bindSeg("#seg-budget", "budget");

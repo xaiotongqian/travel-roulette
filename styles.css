@@ -1186,3 +1186,33 @@ code {
 .map-links-secondary {
   opacity: 0.9;
 }
+
+.base-card { margin-bottom: 0.85rem; }
+.base-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.55rem;
+}
+.base-chip {
+  padding: 0.42rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 550;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.base-chip:hover { color: var(--text); border-color: rgba(127,140,160,0.4); }
+.base-chip.active {
+  background: var(--accent-2-dim);
+  border-color: var(--accent-2);
+  color: var(--accent-2);
+  font-weight: 700;
+}
+.base-chip.geo-active {
+  box-shadow: 0 0 0 2px rgba(74, 144, 217, 0.25);
+}
