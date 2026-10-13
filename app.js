@@ -8,6 +8,7 @@
   const SCOPE_LABEL = { city: "市内", province: "省内", nearby: "隔壁省", national: "国内" };
   const BUDGET_LABEL = { budget: "穷游", mid: "适中", luxury: "奢一点" };
   const DURATION_LABEL = { day: "一日", weekend: "周末", long: "长假", custom: "自定义天数" };
+  const PURPOSE_LABEL = { relax: "散心闲逛", culture: "文化熏陶", outdoor: "户外运动", food: "美食" };
   const MONTH_NAMES = ["", "1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
   const SEASON_MONTHS = { spring: [3, 4, 5], summer: [6, 7, 8], autumn: [9, 10, 11], winter: [12, 1, 2] };
   const SEASON_LABEL = { spring: "春季", summer: "夏季", autumn: "秋季", winter: "冬季" };
@@ -24,6 +25,7 @@
     budget: "mid",
     duration: "weekend", // day | weekend | custom
     tripDays: 7,         // duration===custom 时的天数
+    purposes: [],        // 空=不限；多选 OR 匹配
     month: "0",
     maxDistanceKm: 0, // 0 = 不限；否则为估算行车距离上限（km）
     excludeVisited: true,
@@ -181,6 +183,19 @@
     return tags.indexOf(state.budget) !== -1;
   }
 
+  /** 出行目的：未选=不限；多选时地点 purpose 与任一选中项相交即可 */
+  function placeMatchesPurpose(p) {
+    if (!state.purposes || !state.purposes.length) return true;
+    var tags = p.purpose || [];
+    if (!tags.length) return false;
+    return state.purposes.some(function (x) { return tags.indexOf(x) !== -1; });
+  }
+
+  function purposeFilterLabel() {
+    if (!state.purposes || !state.purposes.length) return "";
+    return " · 目的" + state.purposes.map(function (x) { return PURPOSE_LABEL[x] || x; }).join("/");
+  }
+
   /**
    * 出行时长匹配：
    * - 一日：地点 duration 含 day
@@ -220,6 +235,7 @@
         if (p.weight <= 0) return false;
         if (!placeMatchesBudget(p)) return false;
         if (!placeMatchesDuration(p)) return false;
+        if (!placeMatchesPurpose(p)) return false;
         var wantMonths = monthsForFilter(state.month);
         if (wantMonths && p.months && p.months.length) {
           var hit = wantMonths.some(function (m) { return p.months.indexOf(m) !== -1; });
@@ -378,12 +394,41 @@
     updatePoolHint();
   }
 
+  function syncPurposeUI() {
+    var box = $("#purpose-filter");
+    if (!box) return;
+    var selected = state.purposes || [];
+    var isAll = !selected.length;
+    box.querySelectorAll(".purpose-chip").forEach(function (b) {
+      var v = b.dataset.purpose;
+      if (v === "all") b.classList.toggle("active", isAll);
+      else b.classList.toggle("active", selected.indexOf(v) !== -1);
+    });
+  }
+
+  function togglePurpose(key) {
+    if (key === "all") {
+      state.purposes = [];
+    } else {
+      var arr = state.purposes ? state.purposes.slice() : [];
+      var i = arr.indexOf(key);
+      if (i === -1) arr.push(key);
+      else arr.splice(i, 1);
+      state.purposes = arr;
+    }
+    state.activePreset = "";
+    document.querySelectorAll(".preset-chip").forEach(function (c) { c.classList.remove("active"); });
+    syncPurposeUI();
+    updatePoolHint();
+  }
+
   function applyFiltersToUI() {
     setSegValue("#seg-scope", state.scope);
     setSegValue("#seg-budget", state.budget);
     setSegValue("#seg-month", state.month);
     syncDurationUI();
     syncDistanceUI();
+    syncPurposeUI();
     updatePoolHint();
   }
 
@@ -393,6 +438,7 @@
     state.scope = p.scope;
     state.budget = p.budget;
     state.month = p.month;
+    state.purposes = p.purposes ? p.purposes.slice() : [];
     state.activePreset = key;
     $$(".preset-chip").forEach(function (c) {
       c.classList.toggle("active", c.dataset.preset === key);
@@ -419,6 +465,7 @@
     var distTxt = state.maxDistanceKm > 0 ? (" · 行车≤" + state.maxDistanceKm + "km") : "";
     el.innerHTML = "当前候选 <strong>" + pool.length + "</strong> 个地点（" + scope + " · 预算" +
       BUDGET_LABEL[state.budget] + " · " + durationFilterLabel() +
+      purposeFilterLabel() +
       monthFilterLabel(state.month) + distTxt + "）";
     if (empty) empty.classList.toggle("hidden", pool.length > 0);
     var btn = $("#btn-draw");
@@ -564,14 +611,65 @@
     return place.mapQuery || (place.region ? place.region + " " + place.name : place.name);
   }
 
+  /** 百度网页驾车导航（深圳 → 目的地）；有坐标更准 */
+  function baiduDrivingUrl(place) {
+    var origin = homeCenter();
+    var name = mapQueryFor(place);
+    var destName = encodeURIComponent(name);
+    var originPart = "latlng:" + origin.lat + "," + origin.lng + "|name:" + encodeURIComponent("深圳");
+    var destPart;
+    if (typeof place.lat === "number" && typeof place.lng === "number") {
+      destPart = "latlng:" + place.lat + "," + place.lng + "|name:" + destName;
+    } else {
+      destPart = "name:" + destName;
+    }
+    // 官方方向检索 HTML 输出，浏览器/车机 WebView 可开
+    return "https://api.map.baidu.com/direction?origin=" + originPart +
+      "&destination=" + destPart +
+      "&mode=driving&region=" + encodeURIComponent("深圳") +
+      "&output=html&coord_type=gcj02&src=travel-roulette";
+  }
+
+
   function setMapLinks(place) {
     var q = encodeURIComponent(mapQueryFor(place));
-    var amap = $("#map-amap");
+    var nav = $("#map-baidu-nav");
     var baidu = $("#map-baidu");
+    var amap = $("#map-amap");
     var google = $("#map-google");
-    if (amap) amap.href = "https://uri.amap.com/search?keyword=" + q;
-    if (baidu) baidu.href = "https://map.baidu.com/search/" + q + "/@0,0&querytype=s";
-    if (google) google.href = "https://www.google.com/maps/search/?api=1&query=" + q;
+    var hint = $("#map-nav-hint");
+    var webNav = baiduDrivingUrl(place);
+    if (nav) {
+      nav.href = webNav;
+      nav.title = "从深圳驾车前往（百度地图）";
+    }
+    if (baidu) baidu.href = "https://map.baidu.com/search?query=" + q;
+    // 高德/Google 次要：仍给搜索或导航
+    if (amap) {
+      if (typeof place.lat === "number" && typeof place.lng === "number") {
+        var o = homeCenter();
+        amap.href = "https://uri.amap.com/navigation?from=" + o.lng + "," + o.lat + ",深圳&to=" +
+          place.lng + "," + place.lat + "," + encodeURIComponent(mapQueryFor(place)) +
+          "&mode=car&coordinate=gaode&callnative=0";
+      } else {
+        amap.href = "https://uri.amap.com/search?keyword=" + q;
+      }
+    }
+    if (google) {
+      if (typeof place.lat === "number" && typeof place.lng === "number") {
+        var oc = homeCenter();
+        google.href = "https://www.google.com/maps/dir/?api=1&origin=" + oc.lat + "," + oc.lng +
+          "&destination=" + place.lat + "," + place.lng + "&travelmode=driving";
+      } else {
+        google.href = "https://www.google.com/maps/search/?api=1&query=" + q;
+      }
+    }
+    if (hint) {
+      var km = placeDriveKm(place);
+      hint.textContent = "默认从深圳中心驾车" +
+        (km != null ? "（估算约" + Math.round(km) + "km）" : "") +
+        "；车机可打开「百度驾车导航」或搜索同名终点。";
+    }
   }
 
 
@@ -733,8 +831,10 @@
     $("#result-badge").textContent = SCOPE_LABEL[place.scope] + (place.region ? " · " + place.region : "");
     $("#result-name").textContent = place.name;
     var dkm = placeDriveKm(place);
+    var purposeTxt = (place.purpose || []).map(function (x) { return PURPOSE_LABEL[x] || x; }).join("·");
     $("#result-meta").textContent =
       "预算" + BUDGET_LABEL[state.budget] + " · " + durationFilterLabel() +
+      (purposeTxt ? " · " + purposeTxt : "") +
       (dkm != null ? " · " + driveDistanceHint(dkm) : "") +
       (place.visited ? " · 已去过" : "");
     $("#result-vibe").textContent = place.vibe || "说走就走，风景在路上。";
@@ -750,7 +850,7 @@
     fillDetailList($("#detail-food"), place.food, "暂无美食推荐。");
     fillDetailList($("#detail-sights"), place.sights, "暂无打卡点说明。");
     fillDetailList($("#detail-culture"), place.culture, "暂无文化/氛围说明。");
-    fillDetailText($("#detail-route"), place.route, "暂无路径建议，可用地图搜索自行规划。");
+    fillDetailText($("#detail-route"), place.route, "暂无自驾路径建议，可用百度驾车导航规划。");
     fillDetailList($("#detail-tips"), place.tips, "暂无小贴士。");
     setMapLinks(place);
   }
@@ -935,6 +1035,7 @@
           '<div class="name">' + escapeHtml(p.name) + (p.visited ? " ✓" : "") + "</div>" +
           '<div class="sub">' + SCOPE_LABEL[p.scope] + " · " + escapeHtml(p.region || "") +
             (placeDriveKm(p) != null ? " · " + driveDistanceHint(placeDriveKm(p)) : "") +
+            ((p.purpose || []).length ? " · " + (p.purpose || []).map(function (x) { return PURPOSE_LABEL[x] || x; }).join("/") : "") +
             " · " + (p.tags || []).slice(0, 3).map(escapeHtml).join(" / ") + customBadge + "</div>" +
         "</div>" +
         '<div class="place-actions">' +
@@ -1088,8 +1189,10 @@
     var route = ($("#custom-route") && $("#custom-route").value.trim()) || "";
     var budget = $$("#custom-budget input:checked").map(function (i) { return i.value; });
     var duration = $$("#custom-duration input:checked").map(function (i) { return i.value; });
+    var purpose = $$("#custom-purpose input:checked").map(function (i) { return i.value; });
     if (!budget.length) { toast("请至少选一个预算档"); return; }
     if (!duration.length) { toast("请至少选一个出行时长"); return; }
+    if (!purpose.length) purpose = ["relax"];
 
     state.user.custom.push({
       id: "custom-" + Date.now().toString(36),
@@ -1097,6 +1200,7 @@
       scope: scope,
       region: region,
       tags: tags.length ? tags : ["自定义"],
+      purpose: purpose,
       budget: budget,
       duration: duration,
       months: [],
@@ -1198,6 +1302,7 @@
     state.budget = "mid";
     state.duration = "weekend";
     state.tripDays = 7;
+    state.purposes = [];
     state.month = "0";
     state.maxDistanceKm = 0;
     state.excludeVisited = false;
@@ -1216,6 +1321,17 @@
     bindSeg("#seg-scope", "scope");
     bindSeg("#seg-budget", "budget");
     bindSeg("#seg-month", "month");
+
+    (function bindPurpose() {
+      var box = $("#purpose-filter");
+      if (!box) return;
+      box.addEventListener("click", function (e) {
+        var btn = e.target.closest(".purpose-chip");
+        if (!btn) return;
+        togglePurpose(btn.dataset.purpose);
+      });
+      syncPurposeUI();
+    })();
 
     (function bindDuration() {
       var box = $("#seg-duration");

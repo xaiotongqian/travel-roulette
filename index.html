@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#f7f3eb" />
-  <meta name="description" content="随机旅行抽签 — 深圳市内/广东/隔壁省/国内，可按距离筛选" />
+  <meta name="description" content="随机旅行抽签 — 深圳市内/广东/隔壁省/国内，可按距离与出行目的筛选" />
   <title>旅行抽签 · Travel Roulette</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -84,6 +84,16 @@
             </p>
           </div>
         </div>
+
+        <div class="card-title" style="margin-top:1rem">出行目的</div>
+        <div class="purpose-filter" id="purpose-filter">
+          <button type="button" class="purpose-chip active" data-purpose="all" id="purpose-all">不限</button>
+          <button type="button" class="purpose-chip" data-purpose="relax">散心闲逛</button>
+          <button type="button" class="purpose-chip" data-purpose="culture">文化熏陶</button>
+          <button type="button" class="purpose-chip" data-purpose="outdoor">户外运动</button>
+          <button type="button" class="purpose-chip" data-purpose="food">美食</button>
+        </div>
+        <p class="hint-text">可多选；选中后只需匹配其中任一目的。点「不限」清空。地点带 purpose 标签参与抽签过滤。</p>
 
         <details class="season-details">
           <summary>季节 / 月份（可选）</summary>
@@ -213,12 +223,16 @@
               <div class="detail-body" id="detail-tips"></div>
             </section>
             <div class="map-links" id="map-links">
-              <div class="map-links-label">打开地图搜索</div>
-              <div class="map-links-row">
-                <a class="map-link" id="map-amap" target="_blank" rel="noopener noreferrer">高德</a>
-                <a class="map-link" id="map-baidu" target="_blank" rel="noopener noreferrer">百度</a>
-                <a class="map-link" id="map-google" target="_blank" rel="noopener noreferrer">Google</a>
+              <div class="map-links-label">导航与地图（车机友好 · 百度优先）</div>
+              <div class="map-links-row map-links-primary">
+                <a class="map-link map-link-primary" id="map-baidu-nav" target="_blank" rel="noopener noreferrer">百度驾车导航</a>
+                <a class="map-link" id="map-baidu" target="_blank" rel="noopener noreferrer">百度搜地点</a>
               </div>
+              <div class="map-links-row map-links-secondary">
+                <a class="map-link map-link-dim" id="map-amap" target="_blank" rel="noopener noreferrer">高德</a>
+                <a class="map-link map-link-dim" id="map-google" target="_blank" rel="noopener noreferrer">Google</a>
+              </div>
+              <p class="hint-text" id="map-nav-hint" style="margin-top:0.5rem;margin-bottom:0">默认从深圳中心规划驾车；车机可打开链接或搜索同名终点。</p>
             </div>
           </div>
         </div>
@@ -346,6 +360,15 @@
           <div>
             <label for="custom-route">路径建议（可选）</label>
             <input type="text" id="custom-route" placeholder="如何到达、推荐顺序" />
+          </div>
+          <div>
+            <label>出行目的（可多选）</label>
+            <div class="check-row" id="custom-purpose">
+              <label><input type="checkbox" value="relax" checked /> 散心闲逛</label>
+              <label><input type="checkbox" value="culture" /> 文化熏陶</label>
+              <label><input type="checkbox" value="outdoor" /> 户外运动</label>
+              <label><input type="checkbox" value="food" /> 美食</label>
+            </div>
           </div>
           <div>
             <label>适用预算 *</label>
