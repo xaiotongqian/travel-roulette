@@ -12,9 +12,25 @@
   <div class="app">
     <header class="header">
       <div class="header-top">
-        <div>
+        <div class="header-title-block">
           <h1>旅行抽签</h1>
-          <p id="home-label">不知道去哪？转一下就知道</p>
+          <div class="header-base" id="header-base">
+            <button type="button" class="base-summary" id="base-summary" aria-expanded="false" aria-controls="base-popover">
+              <span class="base-summary-icon" id="base-status-icon">📍</span>
+              <span class="base-summary-text" id="base-summary-text">正在定位…</span>
+              <span class="base-chevron" aria-hidden="true">▾</span>
+            </button>
+            <div class="base-popover hidden" id="base-popover">
+              <div class="base-popover-title">选择出行基地</div>
+              <div class="base-chips" id="base-chips"></div>
+              <label class="toggle base-gps-toggle">
+                <input type="checkbox" id="use-gps-origin" />
+                距离与导航以当前定位为起点
+              </label>
+              <button type="button" class="btn btn-secondary btn-sm" id="btn-geo" style="width:100%;margin-top:0.45rem">重新定位</button>
+              <p class="hint-text" id="base-hint" style="margin-top:0.45rem">市内/省内/隔壁省与行车距离均相对基地计算</p>
+            </div>
+          </div>
         </div>
         <div class="header-actions">
           <button type="button" class="theme-toggle" id="btn-sound" title="抽签音效开关" aria-label="音效开关">🔊</button>
@@ -33,21 +49,6 @@
 
     <!-- 抽签 -->
     <section id="panel-draw" class="panel active">
-      <div class="card base-card">
-        <div class="card-title-row">
-          <div class="card-title" style="margin:0">出行基地</div>
-          <button type="button" class="btn btn-ghost btn-sm" id="btn-geo" title="用浏览器定位">📍 定位</button>
-        </div>
-        <div class="base-chips" id="base-chips"></div>
-        <div class="row exclude-row" style="border-top:none;padding-top:0.5rem;margin-top:0.35rem">
-          <label class="toggle">
-            <input type="checkbox" id="use-gps-origin" />
-            距离与导航以「当前定位」为起点
-          </label>
-        </div>
-        <p class="hint-text" id="base-hint">市内 / 省内 / 隔壁省 / 行车距离均相对基地计算；可点定位自动选最近城市。</p>
-      </div>
-
       <div class="presets" id="presets">
         <button type="button" class="preset-chip" data-preset="weekend-budget">🎒 市内周末穷游</button>
         <button type="button" class="preset-chip" data-preset="province-short">🚗 省内短途</button>

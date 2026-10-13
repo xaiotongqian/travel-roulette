@@ -1415,22 +1415,61 @@
     toast("已放宽：适中 · 周末 · 含已去 · 不限季节/行车距离");
   }
 
-  function updateBaseHint() {
+  var baseUi = { locating: false, located: false, popoverOpen: false };
+
+  function setBasePopover(open) {
+    var pop = $("#base-popover");
+    var btn = $("#base-summary");
+    if (!pop || !btn) return;
+    baseUi.popoverOpen = !!open;
+    pop.classList.toggle("hidden", !open);
+    btn.setAttribute("aria-expanded", open ? "true" : "false");
+  }
+
+  function updateBaseSummary(status) {
+    // status: locating | ok | manual | fail
     var b = currentBase();
     var o = currentOrigin();
+    var textEl = $("#base-summary-text");
+    var iconEl = $("#base-status-icon");
+    var summary = $("#base-summary");
     var hint = $("#base-hint");
-    var home = $("#home-label");
-    var msg = "基地「" + b.name + "」· 省内看" + b.province + " · 隔壁：" + (b.neighbors || []).slice(0, 4).join("/") + "等";
-    if (o.isGps) msg += " · 距离/导航以当前定位为起点";
-    if (hint) hint.textContent = msg;
-    if (home) home.textContent = "出行基地：" + b.name + "（可切换）· 定位可选最近城市";
-    // 预设按钮文案随基地
+    if (summary) summary.classList.toggle("locating", status === "locating");
+
+    var text = "";
+    if (status === "locating") {
+      text = "正在定位出行基地…";
+      if (iconEl) iconEl.textContent = "📍";
+    } else if (status === "ok") {
+      text = "基地：" + b.name + (o.isGps ? " · 以定位为起点" : " · 点击可切换");
+      if (iconEl) iconEl.textContent = "📍";
+      baseUi.located = true;
+    } else if (status === "fail") {
+      text = "选择出行基地（定位未开）";
+      if (iconEl) iconEl.textContent = "🏙️";
+    } else {
+      text = "基地：" + b.name + " · 点击可切换";
+      if (iconEl) iconEl.textContent = "📍";
+    }
+    if (textEl) textEl.textContent = text;
+
+    if (hint) {
+      hint.textContent = "省内按「" + b.province + "」· 隔壁：" +
+        (b.neighbors || []).slice(0, 4).join("/") + "等" +
+        (o.isGps ? " · 距离/导航用当前定位" : "");
+    }
+
     var chips = document.querySelectorAll(".preset-chip");
     chips.forEach(function (c) {
       var key = c.dataset.preset;
       if (key === "weekend-budget") c.textContent = "🎒 " + b.name + "市内周末穷游";
       if (key === "province-short") c.textContent = "🚗 " + b.province + "省内短途";
     });
+  }
+
+  // 兼容旧调用名
+  function updateBaseHint() {
+    updateBaseSummary(baseUi.located ? "ok" : (baseUi.locating ? "locating" : "manual"));
   }
 
   function renderBaseChips() {
@@ -1446,24 +1485,42 @@
       btn.addEventListener("click", function () {
         state.user.baseId = b.id;
         state.user.homeCity = b.name;
-        // 手动选城时不强行关 GPS 开关，但提示
         saveUser();
         renderBaseChips();
-        updateBaseHint();
+        updateBaseSummary("ok");
         updatePoolHint();
         if ($("#place-list")) renderPlaces();
+        setBasePopover(false);
         toast("已切换基地：" + b.name);
       });
       box.appendChild(btn);
     });
   }
 
-  function requestGeolocation() {
+  function requestGeolocation(opts) {
+    opts = opts || {};
+    var silent = !!opts.silent;
+    var openOnFail = opts.openOnFail !== false;
+
+    function fail(msg) {
+      baseUi.locating = false;
+      baseUi.located = false;
+      updateBaseSummary("fail");
+      renderBaseChips();
+      if (openOnFail) setBasePopover(true);
+      if (!silent) toast(msg || "定位失败，请手动选择城市");
+      updatePoolHint();
+    }
+
     if (!navigator.geolocation) {
-      toast("当前浏览器不支持定位");
+      fail("浏览器不支持定位，请手动选择城市");
       return;
     }
-    toast("正在定位…");
+
+    baseUi.locating = true;
+    updateBaseSummary("locating");
+    setBasePopover(false);
+
     navigator.geolocation.getCurrentPosition(function (pos) {
       var lat = pos.coords.latitude;
       var lng = pos.coords.longitude;
@@ -1472,40 +1529,67 @@
       state.user.baseId = near.id;
       var b = currentBase();
       state.user.homeCity = b.name;
+      // 自动定位成功时默认用定位作导航起点更贴车机场景
+      if (opts.autoEnableGpsOrigin) state.user.useGpsOrigin = true;
       saveUser();
+      baseUi.locating = false;
+      baseUi.located = true;
       renderBaseChips();
-      updateBaseHint();
+      updateBaseSummary("ok");
       updatePoolHint();
       var gpsCb = $("#use-gps-origin");
-      if (gpsCb) gpsCb.checked = state.user.useGpsOrigin;
-      toast("定位成功：最近基地「" + b.name + "」（约" + Math.round(near.km) + "km）");
-    }, function (err) {
-      toast("定位失败：" + (err && err.message ? err.message : "请检查权限"));
-    }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 });
+      if (gpsCb) gpsCb.checked = !!state.user.useGpsOrigin;
+      if (!silent) toast("已定位到「" + b.name + "」附近（约" + Math.round(near.km) + "km）");
+    }, function () {
+      fail("定位未授权或失败，请手动选择城市");
+    }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 120000 });
   }
 
   function init() {
     if (!state.user.baseId) state.user.baseId = "sz";
     applyTheme(state.user.theme || "light");
     renderBaseChips();
-    updateBaseHint();
+    updateBaseSummary("locating");
+
     var gpsCb = $("#use-gps-origin");
     if (gpsCb) {
       gpsCb.checked = !!state.user.useGpsOrigin;
       gpsCb.addEventListener("change", function () {
         if (this.checked && !(state.user.gps && state.user.gps.lat)) {
           this.checked = false;
-          toast("请先点「定位」获取当前位置");
+          toast("请先定位成功后再开启");
+          requestGeolocation({ openOnFail: true });
           return;
         }
         state.user.useGpsOrigin = this.checked;
         saveUser();
-        updateBaseHint();
+        updateBaseSummary(baseUi.located ? "ok" : "manual");
         updatePoolHint();
         toast(this.checked ? "已用当前定位作距离/导航起点" : "已改回基地城市中心为起点");
       });
     }
-    if ($("#btn-geo")) $("#btn-geo").addEventListener("click", requestGeolocation);
+    if ($("#btn-geo")) {
+      $("#btn-geo").addEventListener("click", function () {
+        requestGeolocation({ silent: false, openOnFail: true, autoEnableGpsOrigin: true });
+      });
+    }
+
+    var summaryBtn = $("#base-summary");
+    if (summaryBtn) {
+      summaryBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        if (baseUi.locating) return;
+        setBasePopover(!baseUi.popoverOpen);
+      });
+    }
+    document.addEventListener("click", function (e) {
+      var root = $("#header-base");
+      if (!root || !baseUi.popoverOpen) return;
+      if (!root.contains(e.target)) setBasePopover(false);
+    });
+
+    // 进入页面优先自动定位
+    requestGeolocation({ silent: true, openOnFail: true, autoEnableGpsOrigin: true });
 
     bindSeg("#seg-scope", "scope");
     bindSeg("#seg-budget", "budget");
