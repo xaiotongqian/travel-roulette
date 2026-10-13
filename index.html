@@ -77,27 +77,17 @@
           <div>
             <div class="card-title">出行时长</div>
             <div class="seg" id="seg-duration">
-              <button type="button" class="seg-btn" data-value="day">一日</button>
-              <button type="button" class="seg-btn active" data-value="weekend">周末</button>
+              <button type="button" class="seg-btn" data-value="day">一日游</button>
+              <button type="button" class="seg-btn active" data-value="weekend">周末游</button>
+              <button type="button" class="seg-btn" data-value="custom">自定义天数</button>
             </div>
-            <div class="duration-custom" id="duration-custom">
-              <label class="distance-custom-label" for="duration-days-input">长假天数（可自定义）</label>
+            <div class="duration-custom hidden" id="duration-custom">
               <div class="distance-input-row">
-                <div class="seg seg-inline" id="seg-duration-quick">
-                  <button type="button" class="seg-btn sm" data-days="5">5天</button>
-                  <button type="button" class="seg-btn sm" data-days="7">7天</button>
-                  <button type="button" class="seg-btn sm" data-days="10">10天</button>
-                </div>
-              </div>
-              <div class="distance-input-row" style="margin-top:0.4rem">
-                <input type="number" id="duration-days-input" min="1" max="30" step="1" placeholder="例如 6" inputmode="numeric" />
+                <input type="number" id="duration-days-input" min="1" max="30" step="1" placeholder="天数" inputmode="numeric" aria-label="自定义天数" />
                 <span class="distance-unit">天</span>
-                <button type="button" class="btn btn-secondary btn-sm" id="btn-duration-apply">应用</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="btn-duration-apply">确定</button>
               </div>
             </div>
-            <p class="hint-text" id="duration-rule-hint">
-              规则：一日→需含「一日」；周末→需含「周末」；自定义 N 天：1 天同「一日」，2–3 天同「周末」，≥4 天匹配「长假」，≥5 天额外放宽非市内且含「周末」的地点。预算档会按地点标注过滤。
-            </p>
           </div>
         </div>
 

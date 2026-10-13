@@ -307,10 +307,10 @@
   }
 
   function durationFilterLabel() {
-    if (state.duration === "day") return "一日";
-    if (state.duration === "weekend") return "周末";
+    if (state.duration === "day") return "一日游";
+    if (state.duration === "weekend") return "周末游";
     var d = parseInt(state.tripDays, 10) || 0;
-    return d > 0 ? (d + "天") : "长假";
+    return d > 0 ? ("自定义" + d + "天") : "自定义天数";
   }
 
   function getPool() {
@@ -444,16 +444,11 @@
     var box = $("#seg-duration");
     if (box) {
       box.querySelectorAll(".seg-btn").forEach(function (b) {
-        b.classList.toggle("active", state.duration !== "custom" && b.dataset.value === state.duration);
+        b.classList.toggle("active", b.dataset.value === state.duration);
       });
     }
-    var quick = $("#seg-duration-quick");
-    if (quick) {
-      quick.querySelectorAll(".seg-btn").forEach(function (b) {
-        var d = parseInt(b.dataset.days, 10);
-        b.classList.toggle("active", state.duration === "custom" && state.tripDays === d);
-      });
-    }
+    var custom = $("#duration-custom");
+    if (custom) custom.classList.toggle("hidden", state.duration !== "custom");
     var input = $("#duration-days-input");
     if (input && document.activeElement !== input) {
       input.value = state.duration === "custom" && state.tripDays > 0 ? String(state.tripDays) : "";
@@ -463,11 +458,9 @@
   function setDurationMode(mode, days, fromPreset) {
     if (mode === "custom") {
       days = parseInt(days, 10);
-      if (!days || days < 1) {
-        toast("请输入 1–30 的天数");
-        return;
-      }
+      if (!days || days < 1) days = parseInt(state.tripDays, 10) || 7;
       if (days > 30) days = 30;
+      if (days < 1) days = 1;
       state.duration = "custom";
       state.tripDays = days;
     } else {
@@ -1612,30 +1605,36 @@
         box.addEventListener("click", function (e) {
           var btn = e.target.closest(".seg-btn");
           if (!btn) return;
-          setDurationMode(btn.dataset.value, 0, false);
-        });
-      }
-      var quick = $("#seg-duration-quick");
-      if (quick) {
-        quick.addEventListener("click", function (e) {
-          var btn = e.target.closest(".seg-btn");
-          if (!btn) return;
-          setDurationMode("custom", btn.dataset.days, false);
-          toast("已按 " + btn.dataset.days + " 天长假筛选");
+          var mode = btn.dataset.value;
+          if (mode === "custom") {
+            setDurationMode("custom", state.tripDays || 7, false);
+            var input = $("#duration-days-input");
+            if (input) setTimeout(function () { input.focus(); input.select(); }, 0);
+          } else {
+            setDurationMode(mode, 0, false);
+          }
         });
       }
       var input = $("#duration-days-input");
       var applyBtn = $("#btn-duration-apply");
       function applyDays() {
         var raw = input && input.value.trim();
-        if (!raw) { toast("请输入长假天数"); return; }
-        setDurationMode("custom", raw, false);
-        toast("已按 " + state.tripDays + " 天筛选（估算匹配规则见说明）");
+        if (!raw) { toast("请输入 1–30 的天数"); return; }
+        var n = parseInt(raw, 10);
+        if (!n || n < 1 || n > 30) { toast("请输入 1–30 的天数"); return; }
+        setDurationMode("custom", n, false);
+        toast("已按 " + n + " 天筛选");
       }
       if (applyBtn) applyBtn.addEventListener("click", applyDays);
       if (input) {
         input.addEventListener("keydown", function (e) {
           if (e.key === "Enter") { e.preventDefault(); applyDays(); }
+        });
+        input.addEventListener("change", function () {
+          var raw = input.value.trim();
+          if (!raw) return;
+          var n = parseInt(raw, 10);
+          if (n >= 1 && n <= 30) setDurationMode("custom", n, false);
         });
       }
       syncDurationUI();

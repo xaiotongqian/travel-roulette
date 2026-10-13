@@ -944,7 +944,19 @@ code {
   font-weight: 600;
 }
 
-.duration-custom { margin-top: 0.55rem; }
+.duration-custom { margin-top: 0.45rem; }
+.duration-custom.hidden { display: none; }
+.duration-custom .distance-input-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  max-width: 14rem;
+}
+.duration-custom #duration-days-input {
+  flex: 1;
+  min-width: 0;
+  width: 5rem;
+}
 .seg-inline { display: flex; flex-wrap: wrap; gap: 0.35rem; }
 .seg-inline .seg-btn { flex: 0 0 auto; min-width: auto; }
 
