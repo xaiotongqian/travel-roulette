@@ -56,6 +56,7 @@ python3 -m http.server 8765
 | 足迹 | 覆盖率、区域芯片、已去列表 |
 | 自定义地点 | 自行添加名称、范围、标签等 |
 | 导出/导入 | JSON 备份与恢复 |
+| GitHub 同步 | 备份页用 gist 权限的令牌，把进度存到私密 Gist（v6） |
 
 ## 文件结构
 
@@ -75,7 +76,7 @@ travel-roulette/
 - `homeCity`：提示文案里的默认城市  
 - `places`：增删改地点；字段见文件顶部注释  
 
-用户在页面里「添加」的地点、已去标记、权重和行程意向存在 `localStorage`（键名 `travel-roulette-v1`），**不会**被改 `data.js` 清掉。换电脑前请到「备份」页导出 JSON。
+用户在页面里「添加」的地点、已去标记、权重和行程意向存在 `localStorage`（键名 `travel-roulette-v1`），**不会**被改 `data.js` 清掉。换设备可在「备份」页导出 JSON，或用「GitHub 同步」：令牌存在 `travel-roulette-gist-token`，不会写进导出的 JSON，也不会提交到这个公开仓库。云端是账号下的私密 Gist 文件 `travel-roulette-backup.json`。
 
 ## 说明
 

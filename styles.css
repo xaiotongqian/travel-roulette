@@ -227,6 +227,29 @@ body {
 .season-details[open] summary::before { content: "▾ "; }
 
 .hint-text { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem; line-height: 1.45; }
+.hint-text a { color: var(--accent); }
+.gist-label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.85rem;
+}
+.gist-token-row {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+  margin-top: 0.35rem;
+}
+.gist-token-row input { flex: 1; width: auto; min-width: 0; }
+.gist-token-row .btn { flex: 0 0 auto; min-width: 3.2rem; }
+.gist-sync-meta {
+  margin-top: 0.7rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  word-break: break-all;
+}
+.gist-sync-meta a { color: var(--accent); }
 .hint-center { font-size: 0.75rem; color: var(--text-muted); text-align: center; margin-top: 0.25rem; }
 .exclude-row { margin-top: 0.9rem; padding-top: 0.75rem; border-top: 1px solid var(--border); }
 
@@ -276,7 +299,7 @@ body {
 }
 .toggle input { width: 1.05rem; height: 1.05rem; accent-color: var(--accent); }
 
-select, input[type="text"], input[type="number"], textarea {
+select, input[type="text"], input[type="number"], input[type="password"], textarea {
   font-family: inherit;
   font-size: 0.875rem;
   padding: 0.58rem 0.8rem;

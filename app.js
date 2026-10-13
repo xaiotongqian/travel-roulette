@@ -79,8 +79,17 @@
     }
   }
 
+  const GIST_TOKEN_KEY = "travel-roulette-gist-token";
+  const GIST_ID_KEY = "travel-roulette-gist-id";
+  const GIST_URL_KEY = "travel-roulette-gist-url";
+  const GIST_SYNCED_KEY = "travel-roulette-gist-synced-at";
+  const LOCAL_UPDATED_KEY = "travel-roulette-local-updated-at";
+  const GIST_FILENAME = "travel-roulette-backup.json";
+  const GIST_API = "https://api.github.com";
+
   function saveUser() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state.user));
+    try { localStorage.setItem(LOCAL_UPDATED_KEY, new Date().toISOString()); } catch (e) { /* ignore */ }
   }
 
   function allPlaces() {
@@ -1317,8 +1326,14 @@
     switchTab("places");
   }
 
+  function backupPayload() {
+    var user = JSON.parse(JSON.stringify(state.user));
+    ["gistToken", "githubToken", "token", "pat"].forEach(function (k) { delete user[k]; });
+    return { version: 2, exportedAt: new Date().toISOString(), user: user };
+  }
+
   function exportJson() {
-    var payload = { version: 2, exportedAt: new Date().toISOString(), user: state.user };
+    var payload = backupPayload();
     var blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     var a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
@@ -1328,39 +1343,416 @@
     toast("已导出备份");
   }
 
+  function applyImportedUser(data) {
+    var user = data && (data.user || data);
+    if (!user || typeof user !== "object" || Array.isArray(user)) throw new Error("格式不对");
+    state.user = Object.assign(defaultUser(), {
+      overrides: user.overrides || {},
+      custom: user.custom || [],
+      trips: user.trips || [],
+      history: user.history || [],
+      theme: user.theme === "dark" ? "dark" : "light",
+      themeChosen: user.themeChosen === true,
+      soundMuted: user.soundMuted === true,
+      homeCity: user.homeCity || state.user.homeCity,
+      baseId: user.baseId || state.user.baseId || "sz",
+      useGpsOrigin: user.useGpsOrigin === true,
+      gps: user.gps || state.user.gps || null,
+    });
+    renderBaseChips();
+    updateBaseHint();
+    saveUser();
+    applyTheme(state.user.theme);
+    updatePoolHint();
+    renderPlaces();
+    renderFootprint();
+    renderHistory();
+  }
+
   function importJson(file) {
     var reader = new FileReader();
     reader.onload = function () {
       try {
-        var data = JSON.parse(reader.result);
-        var user = data.user || data;
-        if (!user || typeof user !== "object") throw new Error("格式不对");
-        state.user = Object.assign(defaultUser(), {
-          overrides: user.overrides || {},
-          custom: user.custom || [],
-          trips: user.trips || [],
-          history: user.history || [],
-          theme: user.theme === "dark" ? "dark" : "light",
-          soundMuted: user.soundMuted === true,
-          homeCity: user.homeCity || state.user.homeCity,
-          baseId: user.baseId || state.user.baseId || "sz",
-          useGpsOrigin: user.useGpsOrigin === true,
-          gps: user.gps || state.user.gps || null,
-        });
-        renderBaseChips();
-        updateBaseHint();
-        saveUser();
-        applyTheme(state.user.theme);
-        updatePoolHint();
-        renderPlaces();
-        renderFootprint();
-        renderHistory();
+        applyImportedUser(JSON.parse(reader.result));
         toast("导入成功");
       } catch (e) {
         toast("导入失败：文件格式无效");
       }
     };
     reader.readAsText(file);
+  }
+
+  function gistHttpMessage(status) {
+    if (status === 401) return "令牌无效或已过期，请重新创建带 gist 权限的令牌";
+    if (status === 403) return "令牌没有 Gist 读写权限，或 GitHub 拒绝了请求";
+    if (status === 404) return "找不到这个云端备份";
+    if (status === 422) return "GitHub 拒绝了备份内容，请稍后再试";
+    return "GitHub 返回错误（" + status + "）";
+  }
+
+  function syncFailMessage(err) {
+    if (!err) return "同步失败";
+    if (err.code === "cancel") return "";
+    if (err.code === "empty") return "云端备份是空的";
+    if (err.status) return err.message || gistHttpMessage(err.status);
+    var msg = err.message || "";
+    if (err.name === "TypeError" || /failed to fetch|networkerror|load failed/i.test(msg)) {
+      return "网络失败，请检查连接后重试";
+    }
+    return msg || "同步失败";
+  }
+
+  function storedToken() {
+    try { return (localStorage.getItem(GIST_TOKEN_KEY) || "").trim(); } catch (e) { return ""; }
+  }
+
+  function readTokenInput() {
+    var el = $("#gist-token");
+    return el ? el.value.trim() : "";
+  }
+
+  function resolveGistToken() {
+    var typed = readTokenInput();
+    if (typed) {
+      try { localStorage.setItem(GIST_TOKEN_KEY, typed); } catch (e) { /* ignore */ }
+      var input = $("#gist-token");
+      if (input) {
+        input.value = "";
+        input.type = "password";
+      }
+      var toggle = $("#btn-gist-token-toggle");
+      if (toggle) toggle.textContent = "显示";
+      renderGistStatus();
+      return typed;
+    }
+    return storedToken();
+  }
+
+  function formatSyncTime(iso) {
+    if (!iso) return "未知";
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return iso;
+    return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + " " + pad(d.getHours()) + ":" + pad(d.getMinutes());
+  }
+
+  function localHasProgress() {
+    var u = state.user || {};
+    var overrides = u.overrides || {};
+    var keys = Object.keys(overrides);
+    for (var i = 0; i < keys.length; i++) {
+      var o = overrides[keys[i]];
+      if (o && (o.visited === true || typeof o.weight === "number")) return true;
+    }
+    return !!((u.custom && u.custom.length) || (u.trips && u.trips.length) || (u.history && u.history.length));
+  }
+
+  function renderGistStatus() {
+    var tokenStatus = $("#gist-token-status");
+    var syncStatus = $("#gist-sync-status");
+    if (tokenStatus) {
+      tokenStatus.textContent = storedToken()
+        ? "令牌已保存在本机，不会进入导出的 JSON。"
+        : "尚未保存令牌。";
+    }
+    if (!syncStatus) return;
+    var url = "";
+    var synced = "";
+    var id = "";
+    try {
+      url = localStorage.getItem(GIST_URL_KEY) || "";
+      synced = localStorage.getItem(GIST_SYNCED_KEY) || "";
+      id = localStorage.getItem(GIST_ID_KEY) || "";
+    } catch (e) { /* ignore */ }
+    var line = synced ? ("上次同步：" + formatSyncTime(synced)) : "尚未同步。";
+    if (url) {
+      syncStatus.innerHTML = escapeHtml(line) + "<br>备份：<a href=\"" + escapeHtml(url) + "\" target=\"_blank\" rel=\"noopener noreferrer\">" + escapeHtml(url) + "</a>";
+    } else if (id) {
+      syncStatus.textContent = line + " · 已关联云端备份";
+    } else {
+      syncStatus.textContent = line + (synced ? "" : " 上传后会创建私密 Gist。");
+    }
+  }
+
+  function setGistBusy(busy) {
+    ["btn-gist-push", "btn-gist-pull", "btn-gist-save-token", "btn-gist-clear-token"].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.disabled = busy;
+    });
+  }
+
+  function gistRequest(path, options) {
+    var headers = {
+      Accept: "application/vnd.github+json",
+      Authorization: "Bearer " + options.token,
+      "X-GitHub-Api-Version": "2022-11-28",
+    };
+    if (options.body) headers["Content-Type"] = "application/json";
+    return fetch(GIST_API + path, {
+      method: options.method || "GET",
+      headers: headers,
+      body: options.body ? JSON.stringify(options.body) : undefined,
+      cache: "no-store",
+    }).then(function (res) {
+      return res.text().then(function (text) {
+        var data = null;
+        if (text) {
+          try { data = JSON.parse(text); } catch (e) { data = null; }
+        }
+        if (!res.ok) {
+          var err = new Error(gistHttpMessage(res.status));
+          err.status = res.status;
+          throw err;
+        }
+        return data;
+      });
+    });
+  }
+
+  function rememberGist(gist, syncedAt) {
+    try {
+      if (gist && gist.id) localStorage.setItem(GIST_ID_KEY, gist.id);
+      if (gist && gist.html_url) localStorage.setItem(GIST_URL_KEY, gist.html_url);
+      if (syncedAt) localStorage.setItem(GIST_SYNCED_KEY, syncedAt);
+    } catch (e) { /* ignore */ }
+    renderGistStatus();
+  }
+
+  function locateBackupGistByList(token) {
+    return gistRequest("/gists?per_page=100", { token: token }).then(function (list) {
+      if (!Array.isArray(list)) return null;
+      var matches = list.filter(function (g) {
+        return g && g.files && g.files[GIST_FILENAME] && g.public !== true;
+      });
+      matches.sort(function (a, b) {
+        return String(b.updated_at || "").localeCompare(String(a.updated_at || ""));
+      });
+      if (!matches.length) return null;
+      return gistRequest("/gists/" + encodeURIComponent(matches[0].id), { token: token });
+    });
+  }
+
+  function locateBackupGist(token) {
+    var id = "";
+    try { id = localStorage.getItem(GIST_ID_KEY) || ""; } catch (e) { id = ""; }
+    if (!id) return locateBackupGistByList(token);
+    return gistRequest("/gists/" + encodeURIComponent(id), { token: token }).then(function (gist) {
+      if (gist && gist.public === true) {
+        var err = new Error("已关联的备份是公开 Gist，已停止同步。请删除该 Gist 后重新上传。");
+        err.code = "public";
+        throw err;
+      }
+      return gist;
+    }).catch(function (err) {
+      if (err && err.status === 404) return locateBackupGistByList(token);
+      throw err;
+    });
+  }
+
+  function readGistFileText(gist, token) {
+    var files = gist && gist.files;
+    var file = files && (files[GIST_FILENAME] || null);
+    if (!file) {
+      var missing = new Error("云端备份是空的");
+      missing.code = "empty";
+      throw missing;
+    }
+    if (!file.truncated && typeof file.content === "string") {
+      if (!file.content.trim()) {
+        var blank = new Error("云端备份是空的");
+        blank.code = "empty";
+        throw blank;
+      }
+      return Promise.resolve(file.content);
+    }
+    if (!file.raw_url) {
+      var empty = new Error("云端备份是空的");
+      empty.code = "empty";
+      throw empty;
+    }
+    return fetch(file.raw_url, {
+      headers: {
+        Accept: "application/vnd.github.raw+json",
+        Authorization: "Bearer " + token,
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+      cache: "no-store",
+    }).then(function (res) {
+      if (!res.ok) {
+        var err = new Error(gistHttpMessage(res.status));
+        err.status = res.status;
+        throw err;
+      }
+      return res.text();
+    }).then(function (text) {
+      if (!text || !String(text).trim()) {
+        var err = new Error("云端备份是空的");
+        err.code = "empty";
+        throw err;
+      }
+      return text;
+    });
+  }
+
+  function discardPublicGist(token, gistId) {
+    if (!gistId) return Promise.resolve();
+    return gistRequest("/gists/" + encodeURIComponent(gistId), { method: "DELETE", token: token }).catch(function () {});
+  }
+
+  function pushGist() {
+    var token = resolveGistToken();
+    if (!token) { toast("请先填写 GitHub 令牌"); return; }
+    setGistBusy(true);
+    locateBackupGist(token).then(function (existing) {
+      if (existing && existing.public === true) {
+        return discardPublicGist(token, existing.id).then(function () {
+          try {
+            localStorage.removeItem(GIST_ID_KEY);
+            localStorage.removeItem(GIST_URL_KEY);
+          } catch (e) { /* ignore */ }
+          var err = new Error("云端备份是公开的，已停止上传并尝试删除。请重新上传以创建私密 Gist。");
+          err.code = "public";
+          throw err;
+        });
+      }
+      var remoteAtPromise = existing
+        ? readGistFileText(existing, token).then(function (text) {
+            try { return (JSON.parse(text) || {}).exportedAt || existing.updated_at || ""; }
+            catch (e) { return existing.updated_at || ""; }
+          }).catch(function () { return existing.updated_at || ""; })
+        : Promise.resolve("");
+      return remoteAtPromise.then(function (remoteAt) {
+        var localAt = "";
+        try { localAt = localStorage.getItem(LOCAL_UPDATED_KEY) || ""; } catch (e) { localAt = ""; }
+        if (existing && remoteAt && localAt && remoteAt > localAt) {
+          var ok = confirm(
+            "GitHub 上的备份比本机更新。\nGitHub：" + formatSyncTime(remoteAt) +
+            "\n本机：" + formatSyncTime(localAt) +
+            "\n确定用本机数据覆盖 GitHub 吗？"
+          );
+          if (!ok) {
+            var cancel = new Error("cancel");
+            cancel.code = "cancel";
+            throw cancel;
+          }
+        }
+        var payload = backupPayload();
+        var body = { description: "travel-roulette backup (private)", files: {} };
+        body.files[GIST_FILENAME] = { content: JSON.stringify(payload) };
+        var path, method;
+        if (existing && existing.id) {
+          path = "/gists/" + encodeURIComponent(existing.id);
+          method = "PATCH";
+        } else {
+          path = "/gists";
+          method = "POST";
+          body.public = false;
+        }
+        return gistRequest(path, { method: method, token: token, body: body }).then(function (gist) {
+          if (gist && gist.public === true) {
+            return discardPublicGist(token, gist.id).then(function () {
+              var err = new Error("GitHub 把备份建成了公开 Gist，已尝试删除。请检查令牌后重试。");
+              err.code = "public";
+              throw err;
+            });
+          }
+          rememberGist(gist, payload.exportedAt);
+          try { localStorage.setItem(LOCAL_UPDATED_KEY, payload.exportedAt); } catch (e) { /* ignore */ }
+          toast(existing ? "已上传到 GitHub" : "已创建私密备份并上传");
+        });
+      });
+    }).catch(function (err) {
+      var msg = syncFailMessage(err);
+      if (msg) toast(msg);
+    }).then(function () {
+      setGistBusy(false);
+      renderGistStatus();
+    });
+  }
+
+  function pullGist() {
+    var token = resolveGistToken();
+    if (!token) { toast("请先填写 GitHub 令牌"); return; }
+    setGistBusy(true);
+    locateBackupGist(token).then(function (gist) {
+      if (!gist) {
+        var missing = new Error("没有找到私密备份。请先在一台设备上点「上传到 GitHub」。");
+        missing.code = "missing";
+        throw missing;
+      }
+      if (gist.public === true) {
+        var pub = new Error("这个 Gist 是公开的，已停止拉取。");
+        pub.code = "public";
+        throw pub;
+      }
+      return readGistFileText(gist, token).then(function (text) {
+        var data;
+        try { data = JSON.parse(text); }
+        catch (e) { throw new Error("云端备份不是有效的 JSON"); }
+        var user = data && (data.user || data);
+        if (!user || typeof user !== "object" || Array.isArray(user)) {
+          var empty = new Error("云端备份是空的");
+          empty.code = "empty";
+          throw empty;
+        }
+        var remoteAt = data.exportedAt || gist.updated_at || "";
+        var localAt = "";
+        try { localAt = localStorage.getItem(LOCAL_UPDATED_KEY) || ""; } catch (e) { localAt = ""; }
+        if (localHasProgress() || localAt) {
+          var newer = !!(localAt && remoteAt && localAt > remoteAt);
+          var msg = newer
+            ? "本机数据比 GitHub 更新。\n本机：" + formatSyncTime(localAt) + "\nGitHub：" + formatSyncTime(remoteAt) + "\n确定用 GitHub 备份覆盖本机吗？已去、好感、自定义地点、历史和设置都会被替换。"
+            : "用 GitHub 备份覆盖本机数据？\nGitHub：" + formatSyncTime(remoteAt) + (localAt ? "\n本机：" + formatSyncTime(localAt) : "") + "\n已去、好感、自定义地点、历史和设置都会被替换。";
+          if (!confirm(msg)) {
+            var cancel = new Error("cancel");
+            cancel.code = "cancel";
+            throw cancel;
+          }
+        }
+        applyImportedUser(data);
+        try { localStorage.setItem(LOCAL_UPDATED_KEY, remoteAt || new Date().toISOString()); } catch (e) { /* ignore */ }
+        rememberGist(gist, new Date().toISOString());
+        toast("已从 GitHub 拉取");
+      });
+    }).catch(function (err) {
+      var msg = syncFailMessage(err);
+      if (msg) toast(msg);
+    }).then(function () {
+      setGistBusy(false);
+      renderGistStatus();
+    });
+  }
+
+  function saveTypedGistToken() {
+    var typed = readTokenInput();
+    if (!typed) {
+      toast(storedToken() ? "本机已有令牌。要更换请先粘贴新令牌。" : "请先粘贴 GitHub 令牌");
+      return;
+    }
+    try { localStorage.setItem(GIST_TOKEN_KEY, typed); } catch (e) { toast("无法写入本机存储"); return; }
+    var input = $("#gist-token");
+    if (input) {
+      input.value = "";
+      input.type = "password";
+    }
+    var toggle = $("#btn-gist-token-toggle");
+    if (toggle) toggle.textContent = "显示";
+    renderGistStatus();
+    toast("令牌已保存在本机");
+  }
+
+  function clearGistToken() {
+    if (!storedToken() && !readTokenInput()) { toast("本机没有令牌"); return; }
+    if (!confirm("清除本机保存的 GitHub 令牌？云端备份不会删除。")) return;
+    try { localStorage.removeItem(GIST_TOKEN_KEY); } catch (e) { /* ignore */ }
+    var input = $("#gist-token");
+    if (input) {
+      input.value = "";
+      input.type = "password";
+    }
+    var toggle = $("#btn-gist-token-toggle");
+    if (toggle) toggle.textContent = "显示";
+    renderGistStatus();
+    toast("已清除本机令牌");
   }
 
   function resetAll() {
@@ -1750,6 +2142,20 @@
     $("#btn-add-custom").addEventListener("click", addCustomPlace);
     $("#btn-export").addEventListener("click", exportJson);
     $("#btn-import").addEventListener("click", function () { $("#import-file").click(); });
+    if ($("#btn-gist-token-toggle")) {
+      $("#btn-gist-token-toggle").addEventListener("click", function () {
+        var input = $("#gist-token");
+        if (!input) return;
+        var show = input.type === "password";
+        input.type = show ? "text" : "password";
+        this.textContent = show ? "隐藏" : "显示";
+      });
+    }
+    if ($("#btn-gist-save-token")) $("#btn-gist-save-token").addEventListener("click", saveTypedGistToken);
+    if ($("#btn-gist-clear-token")) $("#btn-gist-clear-token").addEventListener("click", clearGistToken);
+    if ($("#btn-gist-push")) $("#btn-gist-push").addEventListener("click", pushGist);
+    if ($("#btn-gist-pull")) $("#btn-gist-pull").addEventListener("click", pullGist);
+    renderGistStatus();
     $("#import-file").addEventListener("change", function () {
       if (this.files && this.files[0]) importJson(this.files[0]);
       this.value = "";
